@@ -1,40 +1,64 @@
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import ProgressBar from '@/components/ProgressBar';
 import QuizCard from '@/components/QuizCard';
 import CodeEditor from '@/components/CodeEditor';
-import { Question, QuizState, getQuestionsForSection } from '@/utils/quizData';
+import { Question, QuizState, getQuestionsForSection, getQuizSetById } from '@/utils/quizData';
 import { useToast } from '@/components/ui/use-toast';
 
 const Quiz = () => {
   const navigate = useNavigate();
+  const { quizSetId } = useParams<{ quizSetId: string }>();
   const { toast } = useToast();
+  
+  // Redirect to quiz selection if no quiz set ID is provided
+  useEffect(() => {
+    if (!quizSetId) {
+      navigate('/quizzes');
+      return;
+    }
+    
+    const quizSet = getQuizSetById(quizSetId);
+    if (!quizSet) {
+      toast({
+        title: "Quiz Not Found",
+        description: "The requested quiz could not be found.",
+        variant: "destructive"
+      });
+      navigate('/quizzes');
+      return;
+    }
+  }, [quizSetId, navigate, toast]);
+  
   const [quizState, setQuizState] = useState<QuizState>({
+    quizSetId: quizSetId || null,
     currentSection: 'mcq',
     currentQuestionIndex: 0,
     answers: {},
     score: 0,
-    timeRemaining: 3 * 60 * 60, // 3 hours in seconds
+    timeRemaining: quizSetId ? getQuizSetById(quizSetId)?.timeLimit || 3 * 60 * 60 : 3 * 60 * 60,
     isCompleted: false
   });
   
   const [currentQuestions, setCurrentQuestions] = useState<Question[]>(
-    getQuestionsForSection('mcq')
+    quizSetId ? getQuestionsForSection(quizSetId, 'mcq') : []
   );
   
   // Initialize timer
   useEffect(() => {
+    if (!quizSetId) return;
+    
     const timer = setInterval(() => {
       setQuizState(prevState => {
         // If time ran out
         if (prevState.timeRemaining <= 1) {
           clearInterval(timer);
-          navigate('/results', { 
+          navigate(`/results/${quizSetId}`, { 
             state: { 
               answers: prevState.answers, 
-              timeSpent: 3 * 60 * 60 - 0,
+              timeSpent: getQuizSetById(quizSetId)?.timeLimit || 3 * 60 * 60,
               autoSubmitted: true
             } 
           });
@@ -47,12 +71,14 @@ const Quiz = () => {
     
     // Cleanup timer
     return () => clearInterval(timer);
-  }, [navigate]);
+  }, [navigate, quizSetId]);
   
-  // When section changes, update questions
+  // When section or quizSetId changes, update questions
   useEffect(() => {
-    setCurrentQuestions(getQuestionsForSection(quizState.currentSection));
-  }, [quizState.currentSection]);
+    if (!quizSetId) return;
+    
+    setCurrentQuestions(getQuestionsForSection(quizSetId, quizState.currentSection));
+  }, [quizState.currentSection, quizSetId]);
   
   const handleAnswerSubmit = (questionId: number, answer: string | number) => {
     setQuizState(prevState => ({
@@ -90,12 +116,12 @@ const Quiz = () => {
           currentSection: 'debugging',
           currentQuestionIndex: 0
         }));
-      } else {
+      } else if (quizSetId) {
         // Quiz completed
-        navigate('/results', { 
+        navigate(`/results/${quizSetId}`, { 
           state: { 
             answers: quizState.answers, 
-            timeSpent: 3 * 60 * 60 - quizState.timeRemaining
+            timeSpent: getQuizSetById(quizSetId)?.timeLimit || 3 * 60 * 60 - quizState.timeRemaining
           } 
         });
       }
@@ -109,17 +135,17 @@ const Quiz = () => {
         ...prevState,
         currentQuestionIndex: prevState.currentQuestionIndex - 1
       }));
-    } else {
+    } else if (quizSetId) {
       // Move to previous section
       if (quizState.currentSection === 'coding') {
-        const mcqQuestions = getQuestionsForSection('mcq');
+        const mcqQuestions = getQuestionsForSection(quizSetId, 'mcq');
         setQuizState(prevState => ({
           ...prevState,
           currentSection: 'mcq',
           currentQuestionIndex: mcqQuestions.length - 1
         }));
       } else if (quizState.currentSection === 'debugging') {
-        const codingQuestions = getQuestionsForSection('coding');
+        const codingQuestions = getQuestionsForSection(quizSetId, 'coding');
         setQuizState(prevState => ({
           ...prevState,
           currentSection: 'coding',
@@ -131,7 +157,7 @@ const Quiz = () => {
   
   const currentQuestion = currentQuestions[quizState.currentQuestionIndex];
   
-  if (!currentQuestion) {
+  if (!quizSetId || !currentQuestion) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <p>Loading questions...</p>

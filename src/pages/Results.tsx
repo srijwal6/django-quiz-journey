@@ -1,13 +1,14 @@
 
 import React, { useEffect, useState } from 'react';
-import { useLocation, Link } from 'react-router-dom';
+import { useLocation, Link, useParams } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
-import { quizQuestions, calculateScore } from '@/utils/quizData';
+import { calculateScore, getQuizSetById } from '@/utils/quizData';
 import { CheckCircle, XCircle, Clock, Award, BarChart } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const Results = () => {
   const location = useLocation();
+  const { quizSetId } = useParams<{ quizSetId: string }>();
   const { answers, timeSpent, autoSubmitted } = location.state || { answers: {}, timeSpent: 0, autoSubmitted: false };
   
   const [score, setScore] = useState(0);
@@ -19,18 +20,23 @@ const Results = () => {
   });
   
   useEffect(() => {
+    if (!quizSetId) return;
+    
+    const quizSet = getQuizSetById(quizSetId);
+    if (!quizSet) return;
+    
     // Calculate total score
-    const calculatedScore = calculateScore(answers, quizQuestions);
+    const calculatedScore = calculateScore(answers, quizSet.questions);
     setScore(calculatedScore);
     
     // Calculate total marks available
-    const total = quizQuestions.reduce((sum, q) => sum + (q.marks || 0), 0);
+    const total = quizSet.questions.reduce((sum, q) => sum + (q.marks || 0), 0);
     setTotalMarks(total);
     
     // Calculate section scores
-    const mcqQuestions = quizQuestions.filter(q => q.section === 'mcq');
-    const codingQuestions = quizQuestions.filter(q => q.section === 'coding');
-    const debuggingQuestions = quizQuestions.filter(q => q.section === 'debugging');
+    const mcqQuestions = quizSet.questions.filter(q => q.section === 'mcq');
+    const codingQuestions = quizSet.questions.filter(q => q.section === 'coding');
+    const debuggingQuestions = quizSet.questions.filter(q => q.section === 'debugging');
     
     setSectionScores({
       mcq: {
@@ -46,7 +52,7 @@ const Results = () => {
         total: debuggingQuestions.reduce((sum, q) => sum + (q.marks || 0), 0)
       }
     });
-  }, [answers]);
+  }, [answers, quizSetId]);
   
   const formatTime = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
@@ -70,8 +76,28 @@ const Results = () => {
     return { grade: 'F', label: 'Needs Improvement' };
   };
   
+  const quizSet = quizSetId ? getQuizSetById(quizSetId) : null;
   const gradeInfo = getGrade(score, totalMarks);
-  const percentage = Math.round((score / totalMarks) * 100);
+  const percentage = Math.round((score / totalMarks) * 100) || 0;
+  
+  if (!quizSet) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="flex items-center justify-center h-screen">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold mb-4">Quiz Results Not Found</h2>
+            <Link 
+              to="/quizzes" 
+              className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors"
+            >
+              Back to Quizzes
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
   
   return (
     <div className="min-h-screen bg-background pb-16">
@@ -79,6 +105,11 @@ const Results = () => {
       
       <main className="pt-20 px-4">
         <div className="max-w-4xl mx-auto animate-fade-in">
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold">{quizSet.title}</h1>
+            <p className="text-muted-foreground">{quizSet.description}</p>
+          </div>
+          
           {autoSubmitted && (
             <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg text-amber-800">
               <p className="flex items-center">
@@ -154,11 +185,11 @@ const Results = () => {
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">Time limit</span>
-                    <span className="font-medium">3 hours</span>
+                    <span className="font-medium">{formatTime(quizSet.timeLimit)}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">Completion</span>
-                    <span className="font-medium">{Math.round((timeSpent / (3 * 60 * 60)) * 100)}%</span>
+                    <span className="font-medium">{Math.round((timeSpent / quizSet.timeLimit) * 100)}%</span>
                   </div>
                 </div>
               </div>
@@ -212,12 +243,19 @@ const Results = () => {
             </div>
           </div>
           
-          <div className="flex justify-center mt-8">
+          <div className="flex justify-center gap-4 mt-8">
+            <Link 
+              to="/quizzes"
+              className="bg-secondary text-foreground px-4 py-2 rounded-lg hover:bg-secondary/80 transition-colors"
+            >
+              Back to Quizzes
+            </Link>
+            
             <Link 
               to="/" 
-              className="btn-secondary"
+              className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors"
             >
-              Back to Home
+              Home
             </Link>
           </div>
         </div>
