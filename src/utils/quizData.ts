@@ -1,4 +1,3 @@
-
 export interface Question {
   id: number;
   section: 'mcq' | 'coding' | 'debugging';
@@ -19,7 +18,7 @@ export interface QuizSet {
   questions: Question[];
 }
 
-export const quizSets: QuizSet[] = [
+let quizSets: QuizSet[] = [
   {
     id: "django-set-1",
     title: "Django Technical Test - Set 1",
@@ -408,6 +407,8 @@ class UserProfileView(APIView):
   }
 ];
 
+export { quizSets };
+
 export interface QuizState {
   quizSetId: string | null;
   currentSection: 'mcq' | 'coding' | 'debugging';
@@ -441,4 +442,16 @@ export function getQuestionsForSection(quizSetId: string, section: 'mcq' | 'codi
   if (!quizSet) return [];
   
   return quizSet.questions.filter(q => q.section === section);
+}
+
+export function addQuizSet(quizSet: QuizSet): void {
+  const existingIndex = quizSets.findIndex(set => set.id === quizSet.id);
+  
+  if (existingIndex !== -1) {
+    quizSets[existingIndex] = quizSet;
+  } else {
+    quizSets = [...quizSets, quizSet];
+  }
+  
+  console.log('Quiz set added:', quizSet.id);
 }

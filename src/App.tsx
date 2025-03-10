@@ -9,6 +9,7 @@ import QuizSelection from "./pages/QuizSelection";
 import Quiz from "./pages/Quiz";
 import Results from "./pages/Results";
 import NotFound from "./pages/NotFound";
+import AddQuizSet from "./pages/AddQuizSet";
 
 const queryClient = new QueryClient();
 
@@ -24,6 +25,7 @@ const App = () => (
           <Route path="/quiz" element={<Navigate to="/quizzes" replace />} />
           <Route path="/quiz/:quizSetId" element={<Quiz />} />
           <Route path="/results/:quizSetId" element={<Results />} />
+          <Route path="/add-quiz" element={<AddQuizSet />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

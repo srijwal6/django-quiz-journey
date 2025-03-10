@@ -3,7 +3,8 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import { quizSets } from '@/utils/quizData';
-import { Clock, FileText, FileCode } from 'lucide-react';
+import { Clock, FileText, FileCode, Plus } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 const QuizSelection = () => {
   const navigate = useNavigate();
@@ -24,11 +25,21 @@ const QuizSelection = () => {
       <Navbar />
       
       <main className="pt-20 px-4 max-w-6xl mx-auto">
-        <div className="my-10">
-          <h1 className="text-3xl font-bold mb-2">Select a Quiz</h1>
-          <p className="text-muted-foreground">
-            Choose from one of our technical tests to assess your skills
-          </p>
+        <div className="flex justify-between items-center my-10">
+          <div>
+            <h1 className="text-3xl font-bold mb-2">Select a Quiz</h1>
+            <p className="text-muted-foreground">
+              Choose from one of our technical tests to assess your skills
+            </p>
+          </div>
+          
+          <Button 
+            onClick={() => navigate('/add-quiz')}
+            className="flex items-center gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            Add New Quiz
+          </Button>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-16">
