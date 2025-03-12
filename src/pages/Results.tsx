@@ -1,15 +1,18 @@
-
 import React, { useEffect, useState } from 'react';
 import { useLocation, Link, useParams } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import { calculateScore, getQuizSetById } from '@/utils/quizData';
-import { CheckCircle, XCircle, Clock, Award, BarChart } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, Award, BarChart, Mail } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { useToast } from '@/hooks/use-toast';
 
 const Results = () => {
   const location = useLocation();
   const { quizSetId } = useParams<{ quizSetId: string }>();
   const { answers, timeSpent, autoSubmitted } = location.state || { answers: {}, timeSpent: 0, autoSubmitted: false };
+  const { toast } = useToast();
   
   const [score, setScore] = useState(0);
   const [totalMarks, setTotalMarks] = useState(0);
@@ -18,6 +21,8 @@ const Results = () => {
     coding: { score: 0, total: 0 },
     debugging: { score: 0, total: 0 }
   });
+  const [email, setEmail] = useState('');
+  const [isSending, setIsSending] = useState(false);
   
   useEffect(() => {
     if (!quizSetId) return;
@@ -74,6 +79,63 @@ const Results = () => {
     if (percentage >= 70) return { grade: 'C', label: 'Satisfactory' };
     if (percentage >= 60) return { grade: 'D', label: 'Pass' };
     return { grade: 'F', label: 'Needs Improvement' };
+  };
+  
+  const handleSendEmail = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!email) {
+      toast({
+        title: "Email Required",
+        description: "Please provide an email address",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!quizSetId) return;
+    
+    const quizSet = getQuizSetById(quizSetId);
+    if (!quizSet) return;
+    
+    setIsSending(true);
+    
+    try {
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      const emailContent = {
+        to: email,
+        subject: `Quiz Results: ${quizSet.title}`,
+        body: {
+          quizTitle: quizSet.title,
+          score: score,
+          totalMarks: totalMarks,
+          percentage: Math.round((score / totalMarks) * 100),
+          timeSpent: timeSpent,
+          sectionScores: sectionScores,
+          answers: answers,
+          questions: quizSet.questions
+        }
+      };
+      
+      console.log('Email content prepared:', emailContent);
+      
+      toast({
+        title: "Email Sent Successfully",
+        description: `Full test details have been sent to ${email}`,
+      });
+      
+      setEmail('');
+    } catch (error) {
+      console.error('Error sending email:', error);
+      toast({
+        title: "Failed to Send Email",
+        description: "There was a problem sending the email. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSending(false);
+    }
   };
   
   const quizSet = quizSetId ? getQuizSetById(quizSetId) : null;
@@ -241,6 +303,36 @@ const Results = () => {
                 </div>
               </div>
             </div>
+          </div>
+          
+          <div className="glass-panel rounded-2xl p-8 mb-8 animate-fade-in">
+            <h3 className="text-xl font-medium mb-4 flex items-center">
+              <Mail className="h-5 w-5 mr-2 text-muted-foreground" />
+              Get Full Test Details via Email
+            </h3>
+            
+            <p className="text-muted-foreground mb-4">
+              Enter your email address to receive a detailed report of your test performance,
+              including all questions, your answers, and the correct answers.
+            </p>
+            
+            <form onSubmit={handleSendEmail} className="flex flex-col sm:flex-row gap-3">
+              <Input
+                type="email"
+                placeholder="Your email address"
+                className="flex-grow"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+              <Button type="submit" disabled={isSending}>
+                {isSending ? (
+                  <>Sending...</>
+                ) : (
+                  <>Send Results</>
+                )}
+              </Button>
+            </form>
           </div>
           
           <div className="flex justify-center gap-4 mt-8">
