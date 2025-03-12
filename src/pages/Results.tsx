@@ -17,15 +17,19 @@ const Results = () => {
     attendeeDetails: null
   };
   
-  const [score, setScore] = useState(0);
-  const [totalMarks, setTotalMarks] = useState(0);
-  const [sectionScores, setSectionScores] = useState({
-    mcq: { score: 0, total: 0 },
-    coding: { score: 0, total: 0 },
-    debugging: { score: 0, total: 0 }
+  // Using useState with default values to avoid recalculations in useEffect
+  const [scoreData, setScoreData] = useState({
+    score: 0,
+    totalMarks: 0,
+    sectionScores: {
+      mcq: { score: 0, total: 0 },
+      coding: { score: 0, total: 0 },
+      debugging: { score: 0, total: 0 }
+    }
   });
   const [detailsSubmitted, setDetailsSubmitted] = useState(false);
   
+  // Calculate scores only once when component mounts or quizSetId/answers change
   useEffect(() => {
     if (!quizSetId) return;
     
@@ -34,34 +38,37 @@ const Results = () => {
     
     // Calculate total score
     const calculatedScore = calculateScore(answers, quizSet.questions);
-    setScore(calculatedScore);
     
     // Calculate total marks available
     const total = quizSet.questions.reduce((sum, q) => sum + (q.marks || 0), 0);
-    setTotalMarks(total);
     
     // Calculate section scores
     const mcqQuestions = quizSet.questions.filter(q => q.section === 'mcq');
     const codingQuestions = quizSet.questions.filter(q => q.section === 'coding');
     const debuggingQuestions = quizSet.questions.filter(q => q.section === 'debugging');
     
-    setSectionScores({
-      mcq: {
-        score: calculateScore(answers, mcqQuestions),
-        total: mcqQuestions.reduce((sum, q) => sum + (q.marks || 0), 0)
-      },
-      coding: {
-        score: calculateScore(answers, codingQuestions),
-        total: codingQuestions.reduce((sum, q) => sum + (q.marks || 0), 0)
-      },
-      debugging: {
-        score: calculateScore(answers, debuggingQuestions),
-        total: debuggingQuestions.reduce((sum, q) => sum + (q.marks || 0), 0)
+    setScoreData({
+      score: calculatedScore,
+      totalMarks: total,
+      sectionScores: {
+        mcq: {
+          score: calculateScore(answers, mcqQuestions),
+          total: mcqQuestions.reduce((sum, q) => sum + (q.marks || 0), 0)
+        },
+        coding: {
+          score: calculateScore(answers, codingQuestions),
+          total: codingQuestions.reduce((sum, q) => sum + (q.marks || 0), 0)
+        },
+        debugging: {
+          score: calculateScore(answers, debuggingQuestions),
+          total: debuggingQuestions.reduce((sum, q) => sum + (q.marks || 0), 0)
+        }
       }
     });
-  }, [answers, quizSetId]);
+  }, [quizSetId, answers]); // Only recalculate when these change
   
   const quizSet = quizSetId ? getQuizSetById(quizSetId) : null;
+  const { score, totalMarks, sectionScores } = scoreData;
   const gradeInfo = getGrade(score, totalMarks);
   const percentage = Math.round((score / totalMarks) * 100) || 0;
   
@@ -127,27 +134,30 @@ const Results = () => {
                 
                 <button 
                   onClick={() => {
-                    // Simulate sending the email
-                    setTimeout(() => {
-                      console.log('Email content prepared:', {
-                        to: 'certifications@tegain.com',
-                        subject: `Certification Test Results: ${quizSet.title}`,
-                        body: {
-                          attendee: attendeeDetails,
-                          quizTitle: quizSet.title,
-                          score: score,
-                          totalMarks: totalMarks,
-                          percentage: percentage,
-                          grade: gradeInfo.grade,
-                          gradeLabel: gradeInfo.label,
-                          timeSpent: timeSpent,
-                          sectionScores: sectionScores,
-                          answers: answers,
-                          questions: quizSet.questions
-                        }
-                      });
-                      setDetailsSubmitted(true);
-                    }, 1000);
+                    // Prepare email content
+                    const emailContent = {
+                      to: 'certifications@tegain.com',
+                      subject: `Certification Test Results: ${quizSet.title}`,
+                      body: {
+                        attendee: attendeeDetails,
+                        quizTitle: quizSet.title,
+                        score,
+                        totalMarks,
+                        percentage,
+                        grade: gradeInfo.grade,
+                        gradeLabel: gradeInfo.label,
+                        timeSpent,
+                        sectionScores,
+                        answers,
+                        questions: quizSet.questions
+                      }
+                    };
+                    
+                    // Log email to verify it has all data
+                    console.log('Email content prepared:', emailContent);
+                    
+                    // Set as submitted
+                    setDetailsSubmitted(true);
                   }}
                   className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors"
                 >

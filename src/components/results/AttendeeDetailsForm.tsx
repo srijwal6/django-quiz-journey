@@ -64,8 +64,10 @@ const AttendeeDetailsForm: React.FC<AttendeeDetailsFormProps> = ({
     setIsSubmitting(true);
     
     try {
+      // Simulate API request with a delay
       await new Promise(resolve => setTimeout(resolve, 1500));
       
+      // Prepare email content
       const emailContent = {
         to: 'certifications@tegain.com',
         subject: `Certification Test Results: ${quizSet.title}`,
@@ -84,13 +86,16 @@ const AttendeeDetailsForm: React.FC<AttendeeDetailsFormProps> = ({
         }
       };
       
+      // Log the email content to verify all data is included
       console.log('Email content prepared:', emailContent);
       
+      // Show success toast
       toast({
         title: "Test Results Submitted",
         description: "Your test details have been sent to our certification team",
       });
       
+      // Notify parent component that submission was successful
       onSubmitSuccess();
     } catch (error) {
       console.error('Error sending results:', error);
