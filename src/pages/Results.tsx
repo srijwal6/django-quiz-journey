@@ -4,12 +4,7 @@ import { useLocation, Link, useParams } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import { calculateScore, getQuizSetById } from '@/utils/quizData';
 import { formatTime, getGrade } from '@/utils/formatters';
-
-// Components
-import ScoreOverview from '@/components/results/ScoreOverview';
-import TimeStats from '@/components/results/TimeStats';
-import SectionBreakdown from '@/components/results/SectionBreakdown';
-import EmailResultsForm from '@/components/results/EmailResultsForm';
+import AttendeeDetailsForm from '@/components/results/AttendeeDetailsForm';
 import AutoSubmitWarning from '@/components/results/AutoSubmitWarning';
 
 const Results = () => {
@@ -24,6 +19,7 @@ const Results = () => {
     coding: { score: 0, total: 0 },
     debugging: { score: 0, total: 0 }
   });
+  const [detailsSubmitted, setDetailsSubmitted] = useState(false);
   
   useEffect(() => {
     if (!quizSetId) return;
@@ -96,33 +92,27 @@ const Results = () => {
           
           <AutoSubmitWarning autoSubmitted={autoSubmitted} />
           
-          <div className="glass-panel rounded-2xl p-8 mb-8">
-            <ScoreOverview 
+          {!detailsSubmitted ? (
+            <AttendeeDetailsForm
+              quizSet={quizSet}
               score={score}
               totalMarks={totalMarks}
+              timeSpent={timeSpent}
+              sectionScores={sectionScores}
+              answers={answers}
               percentage={percentage}
               gradeInfo={gradeInfo}
+              onSubmitSuccess={() => setDetailsSubmitted(true)}
             />
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <TimeStats 
-                timeSpent={timeSpent}
-                timeLimit={quizSet.timeLimit}
-                formatTime={formatTime}
-              />
-              
-              <SectionBreakdown sectionScores={sectionScores} />
+          ) : (
+            <div className="glass-panel rounded-2xl p-8 mb-8">
+              <h2 className="text-xl font-bold mb-4">Thank You!</h2>
+              <p className="text-muted-foreground mb-4">
+                Your test details have been sent to our certification team. You will receive 
+                your official certification status via email shortly.
+              </p>
             </div>
-          </div>
-          
-          <EmailResultsForm 
-            quizSet={quizSet}
-            score={score}
-            totalMarks={totalMarks}
-            timeSpent={timeSpent}
-            sectionScores={sectionScores}
-            answers={answers}
-          />
+          )}
           
           <div className="flex justify-center gap-4 mt-8">
             <Link 
