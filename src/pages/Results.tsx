@@ -1,18 +1,21 @@
+
 import React, { useEffect, useState } from 'react';
 import { useLocation, Link, useParams } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import { calculateScore, getQuizSetById } from '@/utils/quizData';
-import { CheckCircle, XCircle, Clock, Award, BarChart, Mail } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { useToast } from '@/hooks/use-toast';
+import { formatTime, getGrade } from '@/utils/formatters';
+
+// Components
+import ScoreOverview from '@/components/results/ScoreOverview';
+import TimeStats from '@/components/results/TimeStats';
+import SectionBreakdown from '@/components/results/SectionBreakdown';
+import EmailResultsForm from '@/components/results/EmailResultsForm';
+import AutoSubmitWarning from '@/components/results/AutoSubmitWarning';
 
 const Results = () => {
   const location = useLocation();
   const { quizSetId } = useParams<{ quizSetId: string }>();
   const { answers, timeSpent, autoSubmitted } = location.state || { answers: {}, timeSpent: 0, autoSubmitted: false };
-  const { toast } = useToast();
   
   const [score, setScore] = useState(0);
   const [totalMarks, setTotalMarks] = useState(0);
@@ -21,8 +24,6 @@ const Results = () => {
     coding: { score: 0, total: 0 },
     debugging: { score: 0, total: 0 }
   });
-  const [email, setEmail] = useState('');
-  const [isSending, setIsSending] = useState(false);
   
   useEffect(() => {
     if (!quizSetId) return;
@@ -59,85 +60,6 @@ const Results = () => {
     });
   }, [answers, quizSetId]);
   
-  const formatTime = (seconds: number) => {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const remainingSeconds = seconds % 60;
-    
-    const parts = [];
-    if (hours > 0) parts.push(`${hours} hr${hours > 1 ? 's' : ''}`);
-    if (minutes > 0) parts.push(`${minutes} min${minutes > 1 ? 's' : ''}`);
-    if (remainingSeconds > 0 || parts.length === 0) parts.push(`${remainingSeconds} sec${remainingSeconds !== 1 ? 's' : ''}`);
-    
-    return parts.join(' ');
-  };
-  
-  const getGrade = (score: number, total: number) => {
-    const percentage = (score / total) * 100;
-    if (percentage >= 90) return { grade: 'A', label: 'Excellent' };
-    if (percentage >= 80) return { grade: 'B', label: 'Good' };
-    if (percentage >= 70) return { grade: 'C', label: 'Satisfactory' };
-    if (percentage >= 60) return { grade: 'D', label: 'Pass' };
-    return { grade: 'F', label: 'Needs Improvement' };
-  };
-  
-  const handleSendEmail = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!email) {
-      toast({
-        title: "Email Required",
-        description: "Please provide an email address",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    if (!quizSetId) return;
-    
-    const quizSet = getQuizSetById(quizSetId);
-    if (!quizSet) return;
-    
-    setIsSending(true);
-    
-    try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      const emailContent = {
-        to: email,
-        subject: `Quiz Results: ${quizSet.title}`,
-        body: {
-          quizTitle: quizSet.title,
-          score: score,
-          totalMarks: totalMarks,
-          percentage: Math.round((score / totalMarks) * 100),
-          timeSpent: timeSpent,
-          sectionScores: sectionScores,
-          answers: answers,
-          questions: quizSet.questions
-        }
-      };
-      
-      console.log('Email content prepared:', emailContent);
-      
-      toast({
-        title: "Email Sent Successfully",
-        description: `Full test details have been sent to ${email}`,
-      });
-      
-      setEmail('');
-    } catch (error) {
-      console.error('Error sending email:', error);
-      toast({
-        title: "Failed to Send Email",
-        description: "There was a problem sending the email. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSending(false);
-    }
-  };
-  
   const quizSet = quizSetId ? getQuizSetById(quizSetId) : null;
   const gradeInfo = getGrade(score, totalMarks);
   const percentage = Math.round((score / totalMarks) * 100) || 0;
@@ -172,168 +94,35 @@ const Results = () => {
             <p className="text-muted-foreground">{quizSet.description}</p>
           </div>
           
-          {autoSubmitted && (
-            <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg text-amber-800">
-              <p className="flex items-center">
-                <Clock className="h-5 w-5 mr-2" />
-                <span>Your quiz was automatically submitted as the time limit was reached.</span>
-              </p>
-            </div>
-          )}
+          <AutoSubmitWarning autoSubmitted={autoSubmitted} />
           
           <div className="glass-panel rounded-2xl p-8 mb-8">
-            <div className="flex flex-col items-center text-center mb-8">
-              <div className="mb-6">
-                <div className="relative">
-                  <svg className="w-36 h-36">
-                    <circle
-                      className="text-gray-200"
-                      strokeWidth="6"
-                      stroke="currentColor"
-                      fill="transparent"
-                      r="64"
-                      cx="72"
-                      cy="72"
-                    />
-                    <circle
-                      className={cn({
-                        'text-green-500': percentage >= 70,
-                        'text-amber-500': percentage >= 50 && percentage < 70,
-                        'text-red-500': percentage < 50
-                      })}
-                      strokeWidth="6"
-                      strokeLinecap="round"
-                      stroke="currentColor"
-                      fill="transparent"
-                      r="64"
-                      cx="72"
-                      cy="72"
-                      strokeDasharray={`${percentage * 4.02} 402`}
-                      strokeDashoffset="0"
-                    />
-                  </svg>
-                  <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center flex-col">
-                    <p className="text-4xl font-bold">{percentage}%</p>
-                    <p className="text-lg text-muted-foreground">Score</p>
-                  </div>
-                </div>
-              </div>
-              
-              <h1 className="text-3xl font-bold mb-2">Quiz Completed!</h1>
-              <p className="text-muted-foreground mb-4">
-                You scored {score} out of {totalMarks} marks
-              </p>
-              
-              <div className={cn("px-4 py-2 rounded-full text-white font-medium flex items-center", {
-                'bg-green-500': percentage >= 70,
-                'bg-amber-500': percentage >= 50 && percentage < 70,
-                'bg-red-500': percentage < 50
-              })}>
-                <Award className="h-5 w-5 mr-2" />
-                <span>Grade {gradeInfo.grade}: {gradeInfo.label}</span>
-              </div>
-            </div>
+            <ScoreOverview 
+              score={score}
+              totalMarks={totalMarks}
+              percentage={percentage}
+              gradeInfo={gradeInfo}
+            />
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-secondary/50 rounded-xl p-6">
-                <h3 className="text-lg font-medium mb-4 flex items-center">
-                  <Clock className="h-5 w-5 mr-2 text-muted-foreground" />
-                  Time Statistics
-                </h3>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Time spent</span>
-                    <span className="font-medium">{formatTime(timeSpent)}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Time limit</span>
-                    <span className="font-medium">{formatTime(quizSet.timeLimit)}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Completion</span>
-                    <span className="font-medium">{Math.round((timeSpent / quizSet.timeLimit) * 100)}%</span>
-                  </div>
-                </div>
-              </div>
+              <TimeStats 
+                timeSpent={timeSpent}
+                timeLimit={quizSet.timeLimit}
+                formatTime={formatTime}
+              />
               
-              <div className="bg-secondary/50 rounded-xl p-6">
-                <h3 className="text-lg font-medium mb-4 flex items-center">
-                  <BarChart className="h-5 w-5 mr-2 text-muted-foreground" />
-                  Section Breakdown
-                </h3>
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground">MCQ Section</span>
-                      <span className="font-medium">{sectionScores.mcq.score}/{sectionScores.mcq.total}</span>
-                    </div>
-                    <div className="w-full bg-secondary rounded-full h-2">
-                      <div 
-                        className="bg-blue-500 h-2 rounded-full"
-                        style={{ width: `${(sectionScores.mcq.score / sectionScores.mcq.total) * 100}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground">Coding Section</span>
-                      <span className="font-medium">{sectionScores.coding.score}/{sectionScores.coding.total}</span>
-                    </div>
-                    <div className="w-full bg-secondary rounded-full h-2">
-                      <div 
-                        className="bg-amber-500 h-2 rounded-full"
-                        style={{ width: `${(sectionScores.coding.score / sectionScores.coding.total) * 100}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground">Debugging Section</span>
-                      <span className="font-medium">{sectionScores.debugging.score}/{sectionScores.debugging.total}</span>
-                    </div>
-                    <div className="w-full bg-secondary rounded-full h-2">
-                      <div 
-                        className="bg-purple-500 h-2 rounded-full"
-                        style={{ width: `${(sectionScores.debugging.score / sectionScores.debugging.total) * 100}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <SectionBreakdown sectionScores={sectionScores} />
             </div>
           </div>
           
-          <div className="glass-panel rounded-2xl p-8 mb-8 animate-fade-in">
-            <h3 className="text-xl font-medium mb-4 flex items-center">
-              <Mail className="h-5 w-5 mr-2 text-muted-foreground" />
-              Get Full Test Details via Email
-            </h3>
-            
-            <p className="text-muted-foreground mb-4">
-              Enter your email address to receive a detailed report of your test performance,
-              including all questions, your answers, and the correct answers.
-            </p>
-            
-            <form onSubmit={handleSendEmail} className="flex flex-col sm:flex-row gap-3">
-              <Input
-                type="email"
-                placeholder="Your email address"
-                className="flex-grow"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-              <Button type="submit" disabled={isSending}>
-                {isSending ? (
-                  <>Sending...</>
-                ) : (
-                  <>Send Results</>
-                )}
-              </Button>
-            </form>
-          </div>
+          <EmailResultsForm 
+            quizSet={quizSet}
+            score={score}
+            totalMarks={totalMarks}
+            timeSpent={timeSpent}
+            sectionScores={sectionScores}
+            answers={answers}
+          />
           
           <div className="flex justify-center gap-4 mt-8">
             <Link 
