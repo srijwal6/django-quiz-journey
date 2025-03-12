@@ -5,13 +5,22 @@ import Navbar from '@/components/Navbar';
 import ProgressBar from '@/components/ProgressBar';
 import QuizCard from '@/components/QuizCard';
 import CodeEditor from '@/components/CodeEditor';
+import AttendeeForm from '@/components/AttendeeForm';
 import { Question, QuizState, getQuestionsForSection, getQuizSetById } from '@/utils/quizData';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 
 const Quiz = () => {
   const navigate = useNavigate();
   const { quizSetId } = useParams<{ quizSetId: string }>();
   const { toast } = useToast();
+  
+  // State to track if attendee details are collected
+  const [attendeeDetails, setAttendeeDetails] = useState<{
+    fullName: string;
+    employeeId: string;
+    jobTitle: string;
+    phoneNumber: string;
+  } | null>(null);
   
   // Redirect to quiz selection if no quiz set ID is provided
   useEffect(() => {
@@ -46,9 +55,9 @@ const Quiz = () => {
     quizSetId ? getQuestionsForSection(quizSetId, 'mcq') : []
   );
   
-  // Initialize timer
+  // Initialize timer only after attendee details are collected
   useEffect(() => {
-    if (!quizSetId) return;
+    if (!quizSetId || !attendeeDetails) return;
     
     const timer = setInterval(() => {
       setQuizState(prevState => {
@@ -59,7 +68,8 @@ const Quiz = () => {
             state: { 
               answers: prevState.answers, 
               timeSpent: getQuizSetById(quizSetId)?.timeLimit || 3 * 60 * 60,
-              autoSubmitted: true
+              autoSubmitted: true,
+              attendeeDetails: attendeeDetails
             } 
           });
           return { ...prevState, timeRemaining: 0 };
@@ -71,7 +81,7 @@ const Quiz = () => {
     
     // Cleanup timer
     return () => clearInterval(timer);
-  }, [navigate, quizSetId]);
+  }, [navigate, quizSetId, attendeeDetails]);
   
   // When section or quizSetId changes, update questions
   useEffect(() => {
@@ -79,6 +89,19 @@ const Quiz = () => {
     
     setCurrentQuestions(getQuestionsForSection(quizSetId, quizState.currentSection));
   }, [quizState.currentSection, quizSetId]);
+  
+  const handleAttendeeFormSubmit = (details: {
+    fullName: string;
+    employeeId: string;
+    jobTitle: string;
+    phoneNumber: string;
+  }) => {
+    setAttendeeDetails(details);
+    toast({
+      title: "Welcome to the quiz!",
+      description: `Good luck, ${details.fullName}!`,
+    });
+  };
   
   const handleAnswerSubmit = (questionId: number, answer: string | number) => {
     setQuizState(prevState => ({
@@ -121,7 +144,8 @@ const Quiz = () => {
         navigate(`/results/${quizSetId}`, { 
           state: { 
             answers: quizState.answers, 
-            timeSpent: getQuizSetById(quizSetId)?.timeLimit || 3 * 60 * 60 - quizState.timeRemaining
+            timeSpent: getQuizSetById(quizSetId)?.timeLimit || 3 * 60 * 60 - quizState.timeRemaining,
+            attendeeDetails: attendeeDetails
           } 
         });
       }
@@ -157,7 +181,28 @@ const Quiz = () => {
   
   const currentQuestion = currentQuestions[quizState.currentQuestionIndex];
   
-  if (!quizSetId || !currentQuestion) {
+  if (!quizSetId) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p>Loading questions...</p>
+      </div>
+    );
+  }
+  
+  // Show the attendee form if details haven't been collected yet
+  if (!attendeeDetails) {
+    return (
+      <div className="min-h-screen bg-background pb-16">
+        <Navbar />
+        
+        <main className="pt-20 px-4">
+          <AttendeeForm onSubmit={handleAttendeeFormSubmit} />
+        </main>
+      </div>
+    );
+  }
+  
+  if (!currentQuestion) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <p>Loading questions...</p>

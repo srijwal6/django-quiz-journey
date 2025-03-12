@@ -4,36 +4,18 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { QuizSet } from '@/utils/quizData';
 import { Send } from 'lucide-react';
 
-interface AttendeeDetailsFormProps {
-  quizSet: QuizSet;
-  score: number;
-  totalMarks: number;
-  timeSpent: number;
-  percentage: number;
-  gradeInfo: { grade: string; label: string };
-  sectionScores: {
-    mcq: { score: number; total: number };
-    coding: { score: number; total: number };
-    debugging: { score: number; total: number };
-  };
-  answers: Record<string, any>;
-  onSubmitSuccess: () => void;
+interface AttendeeFormProps {
+  onSubmit: (details: {
+    fullName: string;
+    employeeId: string;
+    jobTitle: string;
+    phoneNumber: string;
+  }) => void;
 }
 
-const AttendeeDetailsForm: React.FC<AttendeeDetailsFormProps> = ({
-  quizSet,
-  score,
-  totalMarks,
-  timeSpent,
-  percentage,
-  gradeInfo,
-  sectionScores,
-  answers,
-  onSubmitSuccess,
-}) => {
+const AttendeeForm: React.FC<AttendeeFormProps> = ({ onSubmit }) => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [attendeeDetails, setAttendeeDetails] = useState({
@@ -48,7 +30,7 @@ const AttendeeDetailsForm: React.FC<AttendeeDetailsFormProps> = ({
     setAttendeeDetails(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
     // Validate form
@@ -63,53 +45,19 @@ const AttendeeDetailsForm: React.FC<AttendeeDetailsFormProps> = ({
     
     setIsSubmitting(true);
     
-    try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      const emailContent = {
-        to: 'certifications@tegain.com',
-        subject: `Certification Test Results: ${quizSet.title}`,
-        body: {
-          attendee: attendeeDetails,
-          quizTitle: quizSet.title,
-          score: score,
-          totalMarks: totalMarks,
-          percentage: percentage,
-          grade: gradeInfo.grade,
-          gradeLabel: gradeInfo.label,
-          timeSpent: timeSpent,
-          sectionScores: sectionScores,
-          answers: answers,
-          questions: quizSet.questions
-        }
-      };
-      
-      console.log('Email content prepared:', emailContent);
-      
-      toast({
-        title: "Test Results Submitted",
-        description: "Your test details have been sent to our certification team",
-      });
-      
-      onSubmitSuccess();
-    } catch (error) {
-      console.error('Error sending results:', error);
-      toast({
-        title: "Submission Failed",
-        description: "There was a problem submitting your test results. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
+    // Simulate a short delay
+    setTimeout(() => {
       setIsSubmitting(false);
-    }
+      onSubmit(attendeeDetails);
+    }, 500);
   };
 
   return (
-    <div className="glass-panel rounded-2xl p-8 mb-8 animate-fade-in">
-      <h2 className="text-xl font-bold mb-4">Submit Your Test Details</h2>
+    <div className="max-w-4xl mx-auto glass-panel rounded-2xl p-8 mb-8 animate-fade-in">
+      <h2 className="text-xl font-bold mb-4">Before You Start</h2>
       
       <p className="text-muted-foreground mb-6">
-        Please provide your information below. Your test results and responses will be sent to our certification team for review.
+        Please provide your details below before starting the quiz. This information will be included with your test results.
       </p>
       
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -165,11 +113,11 @@ const AttendeeDetailsForm: React.FC<AttendeeDetailsFormProps> = ({
         <div className="pt-4">
           <Button type="submit" disabled={isSubmitting} className="w-full md:w-auto">
             {isSubmitting ? (
-              <>Submitting...</>
+              <>Processing...</>
             ) : (
               <>
                 <Send className="mr-2 h-4 w-4" />
-                Submit Test Results
+                Start Quiz
               </>
             )}
           </Button>
@@ -179,4 +127,4 @@ const AttendeeDetailsForm: React.FC<AttendeeDetailsFormProps> = ({
   );
 };
 
-export default AttendeeDetailsForm;
+export default AttendeeForm;

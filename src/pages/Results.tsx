@@ -10,7 +10,12 @@ import AutoSubmitWarning from '@/components/results/AutoSubmitWarning';
 const Results = () => {
   const location = useLocation();
   const { quizSetId } = useParams<{ quizSetId: string }>();
-  const { answers, timeSpent, autoSubmitted } = location.state || { answers: {}, timeSpent: 0, autoSubmitted: false };
+  const { answers, timeSpent, autoSubmitted, attendeeDetails } = location.state || { 
+    answers: {}, 
+    timeSpent: 0, 
+    autoSubmitted: false,
+    attendeeDetails: null
+  };
   
   const [score, setScore] = useState(0);
   const [totalMarks, setTotalMarks] = useState(0);
@@ -93,17 +98,75 @@ const Results = () => {
           <AutoSubmitWarning autoSubmitted={autoSubmitted} />
           
           {!detailsSubmitted ? (
-            <AttendeeDetailsForm
-              quizSet={quizSet}
-              score={score}
-              totalMarks={totalMarks}
-              timeSpent={timeSpent}
-              sectionScores={sectionScores}
-              answers={answers}
-              percentage={percentage}
-              gradeInfo={gradeInfo}
-              onSubmitSuccess={() => setDetailsSubmitted(true)}
-            />
+            // If we have attendee details from the beginning of the quiz, use them
+            attendeeDetails ? (
+              <div className="glass-panel rounded-2xl p-8 mb-8">
+                <h2 className="text-xl font-bold mb-4">Submit Your Test Results</h2>
+                <p className="text-muted-foreground mb-4">
+                  Please review your information below before submitting your test results.
+                </p>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                  <div>
+                    <p className="font-semibold">Full Name:</p>
+                    <p className="text-muted-foreground">{attendeeDetails.fullName}</p>
+                  </div>
+                  <div>
+                    <p className="font-semibold">Employee ID:</p>
+                    <p className="text-muted-foreground">{attendeeDetails.employeeId}</p>
+                  </div>
+                  <div>
+                    <p className="font-semibold">Job Title:</p>
+                    <p className="text-muted-foreground">{attendeeDetails.jobTitle || 'Not provided'}</p>
+                  </div>
+                  <div>
+                    <p className="font-semibold">Phone Number:</p>
+                    <p className="text-muted-foreground">{attendeeDetails.phoneNumber || 'Not provided'}</p>
+                  </div>
+                </div>
+                
+                <button 
+                  onClick={() => {
+                    // Simulate sending the email
+                    setTimeout(() => {
+                      console.log('Email content prepared:', {
+                        to: 'certifications@tegain.com',
+                        subject: `Certification Test Results: ${quizSet.title}`,
+                        body: {
+                          attendee: attendeeDetails,
+                          quizTitle: quizSet.title,
+                          score: score,
+                          totalMarks: totalMarks,
+                          percentage: percentage,
+                          grade: gradeInfo.grade,
+                          gradeLabel: gradeInfo.label,
+                          timeSpent: timeSpent,
+                          sectionScores: sectionScores,
+                          answers: answers,
+                          questions: quizSet.questions
+                        }
+                      });
+                      setDetailsSubmitted(true);
+                    }, 1000);
+                  }}
+                  className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors"
+                >
+                  Submit Test Results
+                </button>
+              </div>
+            ) : (
+              <AttendeeDetailsForm
+                quizSet={quizSet}
+                score={score}
+                totalMarks={totalMarks}
+                timeSpent={timeSpent}
+                sectionScores={sectionScores}
+                answers={answers}
+                percentage={percentage}
+                gradeInfo={gradeInfo}
+                onSubmitSuccess={() => setDetailsSubmitted(true)}
+              />
+            )
           ) : (
             <div className="glass-panel rounded-2xl p-8 mb-8">
               <h2 className="text-xl font-bold mb-4">Thank You!</h2>
