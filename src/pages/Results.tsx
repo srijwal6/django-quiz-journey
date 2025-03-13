@@ -1,7 +1,7 @@
-
 import React, { useEffect, useState } from 'react';
 import { useLocation, Link, useParams } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
+import { Button } from '@/components/ui/button';
 import { calculateScore, getQuizSetById } from '@/utils/quizData';
 import { formatTime, getGrade } from '@/utils/formatters';
 import AttendeeDetailsForm from '@/components/results/AttendeeDetailsForm';
@@ -20,7 +20,6 @@ const Results = () => {
     attendeeDetails: null
   };
   
-  // Using useState with default values to avoid recalculations in useEffect
   const [scoreData, setScoreData] = useState({
     score: 0,
     totalMarks: 0,
@@ -33,20 +32,15 @@ const Results = () => {
   const [detailsSubmitted, setDetailsSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   
-  // Calculate scores only once when component mounts or quizSetId/answers change
   useEffect(() => {
     if (!quizSetId) return;
     
     const quizSet = getQuizSetById(quizSetId);
     if (!quizSet) return;
     
-    // Calculate total score
     const calculatedScore = calculateScore(answers, quizSet.questions);
-    
-    // Calculate total marks available
     const total = quizSet.questions.reduce((sum, q) => sum + (q.marks || 0), 0);
     
-    // Calculate section scores
     const mcqQuestions = quizSet.questions.filter(q => q.section === 'mcq');
     const codingQuestions = quizSet.questions.filter(q => q.section === 'coding');
     const debuggingQuestions = quizSet.questions.filter(q => q.section === 'debugging');
@@ -69,7 +63,7 @@ const Results = () => {
         }
       }
     });
-  }, [quizSetId, answers]); // Only recalculate when these change
+  }, [quizSetId, answers]);
   
   const quizSet = quizSetId ? getQuizSetById(quizSetId) : null;
   const { score, totalMarks, sectionScores } = scoreData;
@@ -82,7 +76,6 @@ const Results = () => {
     setSubmitting(true);
     
     try {
-      // Prepare email content
       const emailContent = {
         to_email: 'certifications@tegain.com',
         subject: `Certification Test Results: ${quizSet.title}`,
@@ -97,16 +90,13 @@ const Results = () => {
         grade: gradeInfo.grade,
         grade_label: gradeInfo.label,
         time_spent: timeSpent,
-        // Convert complex objects to JSON strings
         section_scores: JSON.stringify(sectionScores),
         answers: JSON.stringify(answers),
         questions: JSON.stringify(quizSet.questions)
       };
       
-      // Log the email content to verify all data is included
       console.log('Email content prepared:', emailContent);
       
-      // Send email using EmailJS
       const result = await emailjs.send(
         import.meta.env.VITE_EMAILJS_SERVICE_ID,
         import.meta.env.VITE_EMAILJS_TEMPLATE_ID,
@@ -116,7 +106,6 @@ const Results = () => {
       
       console.log('Email sent successfully:', result);
       
-      // Show success toast
       toast({
         title: "Test Results Submitted",
         description: "Your test details have been sent to our certification team",
@@ -168,7 +157,6 @@ const Results = () => {
           <AutoSubmitWarning autoSubmitted={autoSubmitted} />
           
           {!detailsSubmitted ? (
-            // If we have attendee details from the beginning of the quiz, use them
             attendeeDetails ? (
               <div className="glass-panel rounded-2xl p-8 mb-8">
                 <h2 className="text-xl font-bold mb-4">Submit Your Test Results</h2>
