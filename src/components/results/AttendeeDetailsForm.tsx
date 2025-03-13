@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -103,14 +102,6 @@ const AttendeeDetailsForm: React.FC<AttendeeDetailsFormProps> = ({
 Employee ID: ${attendeeDetails.employeeId}
 Job Title: ${attendeeDetails.jobTitle || 'Not provided'}
 Phone Number: ${attendeeDetails.phoneNumber || 'Not provided'}`
-      },
-      {
-        title: 'EXAM SUMMARY',
-        content: `Quiz Title: ${quizSet.title}
-Description: ${quizSet.description}
-Total Score: ${score}/${totalMarks} (${percentage}%)
-Grade: ${gradeInfo.grade} - ${gradeInfo.label}
-Time Spent: ${formatTime(timeSpent)}`
       },
       {
         title: 'SECTION BREAKDOWN',

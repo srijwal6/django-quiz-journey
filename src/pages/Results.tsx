@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useLocation, Link, useParams } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
@@ -126,15 +125,6 @@ const Results = () => {
 Employee ID: ${attendeeDetails.employeeId}
 Job Title: ${attendeeDetails.jobTitle || 'Not provided'}
 Phone Number: ${attendeeDetails.phoneNumber || 'Not provided'}`
-      },
-      {
-        title: 'EXAM SUMMARY',
-        content: `Quiz Title: ${quizSet.title}
-Description: ${quizSet.description}
-Total Score: ${score}/${totalMarks} (${percentage}%)
-Grade: ${gradeInfo.grade} - ${gradeInfo.label}
-Time Spent: ${formatTime(timeSpent)}
-Auto Submitted: ${autoSubmitted ? 'Yes' : 'No'}`
       },
       {
         title: 'SECTION BREAKDOWN',
