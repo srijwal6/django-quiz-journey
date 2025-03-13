@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useLocation, Link, useParams } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
@@ -70,15 +71,103 @@ const Results = () => {
   const gradeInfo = getGrade(score, totalMarks);
   const percentage = Math.round((score / totalMarks) * 100) || 0;
   
+  const formatAnswersForEmail = (answers, questions) => {
+    if (!questions || !answers) return '';
+    
+    let formattedContent = '';
+    
+    questions.forEach(question => {
+      const userAnswer = answers[question.id];
+      const isCorrect = userAnswer === question.correctAnswer;
+      
+      formattedContent += `\n\nQuestion ${question.id}: ${question.questionText}\n`;
+      
+      if (question.section === 'mcq' && question.options) {
+        formattedContent += `Options:\n`;
+        question.options.forEach((option, index) => {
+          formattedContent += `  ${option}\n`;
+        });
+        
+        if (userAnswer !== undefined) {
+          const selectedOption = question.options[userAnswer];
+          formattedContent += `Candidate's Answer: ${selectedOption}\n`;
+        } else {
+          formattedContent += `Candidate's Answer: Not answered\n`;
+        }
+        
+        const correctOption = question.options[question.correctAnswer];
+        formattedContent += `Correct Answer: ${correctOption}\n`;
+      } else {
+        if (userAnswer) {
+          formattedContent += `Candidate's Answer:\n${userAnswer}\n`;
+        } else {
+          formattedContent += `Candidate's Answer: Not answered\n`;
+        }
+        
+        if (question.correctAnswer) {
+          formattedContent += `Suggested Answer/Solution:\n${question.correctAnswer}\n`;
+        }
+      }
+      
+      formattedContent += `Result: ${isCorrect ? 'Correct' : 'Incorrect'}\n`;
+      formattedContent += `Marks: ${isCorrect ? question.marks : 0}/${question.marks}`;
+    });
+    
+    return formattedContent;
+  };
+  
+  const createEmailMessage = () => {
+    if (!quizSet || !attendeeDetails) return '';
+    
+    const sections = [
+      {
+        title: 'CANDIDATE INFORMATION',
+        content: `Name: ${attendeeDetails.fullName}
+Employee ID: ${attendeeDetails.employeeId}
+Job Title: ${attendeeDetails.jobTitle || 'Not provided'}
+Phone Number: ${attendeeDetails.phoneNumber || 'Not provided'}`
+      },
+      {
+        title: 'EXAM SUMMARY',
+        content: `Quiz Title: ${quizSet.title}
+Description: ${quizSet.description}
+Total Score: ${score}/${totalMarks} (${percentage}%)
+Grade: ${gradeInfo.grade} - ${gradeInfo.label}
+Time Spent: ${formatTime(timeSpent)}
+Auto Submitted: ${autoSubmitted ? 'Yes' : 'No'}`
+      },
+      {
+        title: 'SECTION BREAKDOWN',
+        content: `Multiple Choice: ${sectionScores.mcq.score}/${sectionScores.mcq.total}
+Coding Questions: ${sectionScores.coding.score}/${sectionScores.coding.total}
+Debugging Questions: ${sectionScores.debugging.score}/${sectionScores.debugging.total}`
+      },
+      {
+        title: 'DETAILED RESPONSES',
+        content: formatAnswersForEmail(answers, quizSet.questions)
+      }
+    ];
+    
+    let fullMessage = '';
+    sections.forEach(section => {
+      fullMessage += `\n\n=== ${section.title} ===\n${section.content}`;
+    });
+    
+    return fullMessage;
+  };
+  
   const handleSubmitWithAttendeeDetails = async () => {
     if (!quizSet || !attendeeDetails) return;
     
     setSubmitting(true);
     
     try {
+      const detailedMessage = createEmailMessage();
+      
       const emailContent = {
         to_email: 'certifications@tegain.com',
         subject: `Certification Test Results: ${quizSet.title}`,
+        message: detailedMessage,
         attendee_name: attendeeDetails.fullName,
         employee_id: attendeeDetails.employeeId,
         job_title: attendeeDetails.jobTitle || 'Not provided',
