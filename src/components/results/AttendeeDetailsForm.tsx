@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { QuizSet } from '@/utils/quizData';
 import { Send } from 'lucide-react';
+import emailjs from 'emailjs-com';
 
 interface AttendeeDetailsFormProps {
   quizSet: QuizSet;
@@ -64,30 +65,39 @@ const AttendeeDetailsForm: React.FC<AttendeeDetailsFormProps> = ({
     setIsSubmitting(true);
     
     try {
-      // Simulate API request with a delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
       // Prepare email content
       const emailContent = {
-        to: 'certifications@tegain.com',
+        to_email: 'certifications@tegain.com',
         subject: `Certification Test Results: ${quizSet.title}`,
-        body: {
-          attendee: attendeeDetails,
-          quizTitle: quizSet.title,
-          score: score,
-          totalMarks: totalMarks,
-          percentage: percentage,
-          grade: gradeInfo.grade,
-          gradeLabel: gradeInfo.label,
-          timeSpent: timeSpent,
-          sectionScores: sectionScores,
-          answers: answers,
-          questions: quizSet.questions
-        }
+        attendee_name: attendeeDetails.fullName,
+        employee_id: attendeeDetails.employeeId,
+        job_title: attendeeDetails.jobTitle || 'Not provided',
+        phone_number: attendeeDetails.phoneNumber || 'Not provided',
+        quiz_title: quizSet.title,
+        score: score,
+        total_marks: totalMarks,
+        percentage: percentage,
+        grade: gradeInfo.grade,
+        grade_label: gradeInfo.label,
+        time_spent: timeSpent,
+        // Convert complex objects to JSON strings
+        section_scores: JSON.stringify(sectionScores),
+        answers: JSON.stringify(answers),
+        questions: JSON.stringify(quizSet.questions)
       };
       
       // Log the email content to verify all data is included
       console.log('Email content prepared:', emailContent);
+      
+      // Send email using EmailJS
+      const result = await emailjs.send(
+        import.meta.env.VITE_EMAILJS_SERVICE_ID,
+        import.meta.env.VITE_EMAILJS_TEMPLATE_ID,
+        emailContent,
+        import.meta.env.VITE_EMAILJS_USER_ID
+      );
+      
+      console.log('Email sent successfully:', result);
       
       // Show success toast
       toast({

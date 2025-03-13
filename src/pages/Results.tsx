@@ -6,8 +6,11 @@ import { calculateScore, getQuizSetById } from '@/utils/quizData';
 import { formatTime, getGrade } from '@/utils/formatters';
 import AttendeeDetailsForm from '@/components/results/AttendeeDetailsForm';
 import AutoSubmitWarning from '@/components/results/AutoSubmitWarning';
+import emailjs from 'emailjs-com';
+import { useToast } from '@/hooks/use-toast';
 
 const Results = () => {
+  const { toast } = useToast();
   const location = useLocation();
   const { quizSetId } = useParams<{ quizSetId: string }>();
   const { answers, timeSpent, autoSubmitted, attendeeDetails } = location.state || { 
@@ -28,6 +31,7 @@ const Results = () => {
     }
   });
   const [detailsSubmitted, setDetailsSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   
   // Calculate scores only once when component mounts or quizSetId/answers change
   useEffect(() => {
@@ -71,6 +75,65 @@ const Results = () => {
   const { score, totalMarks, sectionScores } = scoreData;
   const gradeInfo = getGrade(score, totalMarks);
   const percentage = Math.round((score / totalMarks) * 100) || 0;
+  
+  const handleSubmitWithAttendeeDetails = async () => {
+    if (!quizSet || !attendeeDetails) return;
+    
+    setSubmitting(true);
+    
+    try {
+      // Prepare email content
+      const emailContent = {
+        to_email: 'certifications@tegain.com',
+        subject: `Certification Test Results: ${quizSet.title}`,
+        attendee_name: attendeeDetails.fullName,
+        employee_id: attendeeDetails.employeeId,
+        job_title: attendeeDetails.jobTitle || 'Not provided',
+        phone_number: attendeeDetails.phoneNumber || 'Not provided',
+        quiz_title: quizSet.title,
+        score: score,
+        total_marks: totalMarks,
+        percentage: percentage,
+        grade: gradeInfo.grade,
+        grade_label: gradeInfo.label,
+        time_spent: timeSpent,
+        // Convert complex objects to JSON strings
+        section_scores: JSON.stringify(sectionScores),
+        answers: JSON.stringify(answers),
+        questions: JSON.stringify(quizSet.questions)
+      };
+      
+      // Log the email content to verify all data is included
+      console.log('Email content prepared:', emailContent);
+      
+      // Send email using EmailJS
+      const result = await emailjs.send(
+        import.meta.env.VITE_EMAILJS_SERVICE_ID,
+        import.meta.env.VITE_EMAILJS_TEMPLATE_ID,
+        emailContent,
+        import.meta.env.VITE_EMAILJS_USER_ID
+      );
+      
+      console.log('Email sent successfully:', result);
+      
+      // Show success toast
+      toast({
+        title: "Test Results Submitted",
+        description: "Your test details have been sent to our certification team",
+      });
+      
+      setDetailsSubmitted(true);
+    } catch (error) {
+      console.error('Error sending results:', error);
+      toast({
+        title: "Submission Failed",
+        description: "There was a problem submitting your test results. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  };
   
   if (!quizSet) {
     return (
@@ -132,37 +195,13 @@ const Results = () => {
                   </div>
                 </div>
                 
-                <button 
-                  onClick={() => {
-                    // Prepare email content
-                    const emailContent = {
-                      to: 'certifications@tegain.com',
-                      subject: `Certification Test Results: ${quizSet.title}`,
-                      body: {
-                        attendee: attendeeDetails,
-                        quizTitle: quizSet.title,
-                        score,
-                        totalMarks,
-                        percentage,
-                        grade: gradeInfo.grade,
-                        gradeLabel: gradeInfo.label,
-                        timeSpent,
-                        sectionScores,
-                        answers,
-                        questions: quizSet.questions
-                      }
-                    };
-                    
-                    // Log email to verify it has all data
-                    console.log('Email content prepared:', emailContent);
-                    
-                    // Set as submitted
-                    setDetailsSubmitted(true);
-                  }}
+                <Button 
+                  onClick={handleSubmitWithAttendeeDetails}
+                  disabled={submitting}
                   className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors"
                 >
-                  Submit Test Results
-                </button>
+                  {submitting ? 'Submitting...' : 'Submit Test Results'}
+                </Button>
               </div>
             ) : (
               <AttendeeDetailsForm
