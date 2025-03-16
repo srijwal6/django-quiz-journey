@@ -1,11 +1,10 @@
-
 export interface Question {
   id: number;
   section: 'mcq' | 'coding' | 'debugging';
   questionText: string;
   marks: number;
   options?: string[];
-  correctAnswer?: number | string; // Updated to allow both string and number
+  correctAnswer?: number | string;
   codeSnippet?: string;
 }
 
@@ -212,6 +211,181 @@ export let quizSets: QuizSet[] = [
       },
     ],
   },
+  {
+    id: 'nextjs-technical-test-set-2',
+    title: 'Next.js Technical Test - Set 2',
+    description:
+      'Advanced Next.js technical assessment covering dynamic routing, data fetching strategies, and optimization techniques.',
+    totalMarks: 100,
+    timeLimit: 10800,
+    questions: [
+      {
+        id: 1,
+        section: 'mcq',
+        questionText: 'Which of the following functions is used to fetch data at request time in Next.js?',
+        marks: 2,
+        options: [
+          'getStaticProps()',
+          'getServerSideProps()',
+          'useEffect()',
+          'fetchData()'
+        ],
+        correctAnswer: 1,
+      },
+      {
+        id: 2,
+        section: 'mcq',
+        questionText: 'What is the correct way to create dynamic routes in Next.js?',
+        marks: 2,
+        options: [
+          'Defining routes in next.config.js',
+          'Creating [id].js inside pages directory',
+          'Using useRouter() hook in a component',
+          'Creating a custom Express.js server'
+        ],
+        correctAnswer: 1,
+      },
+      {
+        id: 3,
+        section: 'mcq',
+        questionText: 'Which method is used for incremental static regeneration (ISR) in Next.js?',
+        marks: 2,
+        options: [
+          'getInitialProps()',
+          'getServerSideProps()',
+          'getStaticProps() with revalidate',
+          'useEffect() with API calls'
+        ],
+        correctAnswer: 2,
+      },
+      {
+        id: 4,
+        section: 'mcq',
+        questionText: 'Which of the following is true regarding API routes in Next.js?',
+        marks: 2,
+        options: [
+          'They must be defined inside pages/api directory',
+          'They can be defined anywhere in the project',
+          'They require an external Express.js server',
+          'They do not support middleware'
+        ],
+        correctAnswer: 0,
+      },
+      {
+        id: 5,
+        section: 'mcq',
+        questionText: 'How does Next.js handle client-side navigation efficiently?',
+        marks: 2,
+        options: [
+          'Using React Router',
+          'Preloading pages with next/link',
+          'Fetching data after navigation',
+          'Using useEffect() to update page state'
+        ],
+        correctAnswer: 1,
+      },
+      {
+        id: 6,
+        section: 'mcq',
+        questionText: 'What is the purpose of next/image component?',
+        marks: 2,
+        options: [
+          'To lazy load images automatically',
+          'To support automatic resizing and optimization',
+          'To enhance performance by using WebP when possible',
+          'All of the above'
+        ],
+        correctAnswer: 3,
+      },
+      {
+        id: 7,
+        section: 'mcq',
+        questionText: 'Which statement about middleware in Next.js is correct?',
+        marks: 2,
+        options: [
+          'Middleware can modify responses before they are sent',
+          'Middleware can only be applied to API routes',
+          'Middleware must be configured in next.config.js',
+          'Middleware cannot access request headers'
+        ],
+        correctAnswer: 0,
+      },
+      {
+        id: 8,
+        section: 'mcq',
+        questionText: 'How can you enable TypeScript support in a Next.js project?',
+        marks: 2,
+        options: [
+          'npm install typescript @types/react @types/node',
+          'next enable typescript',
+          'Adding "typescript": true in package.json',
+          'Next.js does not support TypeScript'
+        ],
+        correctAnswer: 0,
+      },
+      {
+        id: 9,
+        section: 'mcq',
+        questionText: 'Which of the following is NOT an advantage of Next.js?',
+        marks: 2,
+        options: [
+          'Automatic code splitting',
+          'Full-stack capabilities with API routes',
+          'Built-in WebSocket support',
+          'Server-side rendering (SSR) support'
+        ],
+        correctAnswer: 2,
+      },
+      {
+        id: 10,
+        section: 'mcq',
+        questionText: 'How does Next.js optimize JavaScript bundling?',
+        marks: 2,
+        options: [
+          'By minifying and compressing JavaScript',
+          'By tree shaking unused imports',
+          'By lazy loading components',
+          'All of the above'
+        ],
+        correctAnswer: 3,
+      },
+      {
+        id: 11,
+        section: 'coding',
+        questionText: 'Implement a middleware in Next.js that checks if a user is authenticated before accessing certain pages.',
+        marks: 15,
+        codeSnippet: '// middleware.js\n\nexport function middleware(req) {\n  // Your code here\n}',
+      },
+      {
+        id: 12,
+        section: 'coding',
+        questionText: 'Create a Next.js API route that connects to a MongoDB database and retrieves a list of users.',
+        marks: 20,
+        codeSnippet: '// pages/api/users.js\n\nexport default async function handler(req, res) {\n  // Your code here\n}',
+      },
+      {
+        id: 13,
+        section: 'coding',
+        questionText: 'Build a Next.js dynamic page that fetches and displays blog posts using getServerSideProps().',
+        marks: 20,
+        codeSnippet: '// pages/blog/index.js\n\nexport async function getServerSideProps() {\n  // Your code here\n}\n\nexport default function BlogPage({ posts }) {\n  // Your code here\n}',
+      },
+      {
+        id: 14,
+        section: 'debugging',
+        questionText: 'Fix the following Next.js page that throws an error when fetching data.\n\n```jsx\nexport async function getServerSideProps() {\n  const response = await fetch(\'https://jsonplaceholder.typicode.com/posts\');\n  const data = response.json();\n\n  return {\n    props: { posts: data },\n  };\n}\n\nexport default function Posts({ posts }) {\n  return (\n    <div>\n      <h1>Blog Posts</h1>\n      {posts.map((post) => (\n        <div key={post.id}>{post.title}</div>\n      ))}\n    </div>\n  );\n}\n```',
+        marks: 15,
+        correctAnswer: 'export async function getServerSideProps() {\n  const response = await fetch(\'https://jsonplaceholder.typicode.com/posts\');\n  const data = await response.json();\n\n  return {\n    props: { posts: data },\n  };\n}\n\nexport default function Posts({ posts }) {\n  return (\n    <div>\n      <h1>Blog Posts</h1>\n      {posts.map((post) => (\n        <div key={post.id}>{post.title}</div>\n      ))}\n    </div>\n  );\n}',
+      },
+      {
+        id: 15,
+        section: 'debugging',
+        questionText: 'Identify and fix the issue in the Next.js component below that uses next/image.\n\n```jsx\nimport Image from \'next/image\';\n\nexport default function Profile() {\n  return (\n    <div>\n      <Image src="/profile.jpg" width={150} height={150} />\n      <h2>John Doe</h2>\n    </div>\n  );\n}\n```',
+        marks: 15,
+        correctAnswer: 'import Image from \'next/image\';\n\nexport default function Profile() {\n  return (\n    <div>\n      <Image src="/profile.jpg" width={150} height={150} alt="Profile picture of John Doe" />\n      <h2>John Doe</h2>\n    </div>\n  );\n}',
+      },
+    ],
+  },
 ];
 
 export const addQuizSet = (quizSet) => {
@@ -222,7 +396,6 @@ export const getQuizSet = (quizSetId: string) => {
   return quizSets.find((quizSet) => quizSet.id === quizSetId);
 };
 
-// Add the missing functions
 export const getQuizSetById = (quizSetId: string) => {
   return getQuizSet(quizSetId);
 };
