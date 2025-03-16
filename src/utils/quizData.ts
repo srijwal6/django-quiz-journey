@@ -212,6 +212,183 @@ export let quizSets: QuizSet[] = [
     ],
   },
   {
+    id: 'django-technical-test-set-2',
+    title: 'Django Technical Test - Set 2',
+    description:
+      'Advanced Django technical assessment covering models, authentication, and performance optimization techniques.',
+    totalMarks: 100,
+    timeLimit: 10800,
+    questions: [
+      {
+        id: 1,
+        section: 'mcq',
+        questionText: 'Which of the following Django commands creates database migrations?',
+        marks: 2,
+        options: [
+          'python manage.py migrate',
+          'python manage.py create_migrations',
+          'python manage.py makemigrations',
+          'python manage.py generate_migrations'
+        ],
+        correctAnswer: 2,
+      },
+      {
+        id: 2,
+        section: 'mcq',
+        questionText: 'What is the correct way to use Django\'s class-based views (CBVs) for handling forms?',
+        marks: 2,
+        options: [
+          'Using FormView',
+          'Using TemplateView',
+          'Using FormMixin',
+          'Both a and c'
+        ],
+        correctAnswer: 3,
+      },
+      {
+        id: 3,
+        section: 'mcq',
+        questionText: 'Which method in Django\'s ORM retrieves exactly one object or raises an exception if it doesn\'t exist?',
+        marks: 2,
+        options: [
+          'filter()',
+          'get()',
+          'retrieve()',
+          'fetch_one()'
+        ],
+        correctAnswer: 1,
+      },
+      {
+        id: 4,
+        section: 'mcq',
+        questionText: 'How can you implement a custom authentication backend in Django?',
+        marks: 2,
+        options: [
+          'By modifying settings.py',
+          'By subclassing django.contrib.auth.backends.BaseBackend',
+          'By using a middleware class',
+          'By modifying Django\'s built-in User model'
+        ],
+        correctAnswer: 1,
+      },
+      {
+        id: 5,
+        section: 'mcq',
+        questionText: 'Which of the following is true about Django\'s middleware?',
+        marks: 2,
+        options: [
+          'Middleware executes before view processing only',
+          'Middleware executes both before and after view processing',
+          'Middleware is only used for security purposes',
+          'Middleware runs only in development mode'
+        ],
+        correctAnswer: 1,
+      },
+      {
+        id: 6,
+        section: 'mcq',
+        questionText: 'What is the purpose of Django\'s select_related() method?',
+        marks: 2,
+        options: [
+          'It optimizes database queries by performing JOINs',
+          'It filters querysets based on related models',
+          'It fetches only specific fields from the database',
+          'It is used to execute raw SQL queries'
+        ],
+        correctAnswer: 0,
+      },
+      {
+        id: 7,
+        section: 'mcq',
+        questionText: 'Which Django model field is best suited for storing JSON data efficiently?',
+        marks: 2,
+        options: [
+          'CharField',
+          'JSONField',
+          'TextField',
+          'ArrayField'
+        ],
+        correctAnswer: 1,
+      },
+      {
+        id: 8,
+        section: 'mcq',
+        questionText: 'How does Django handle concurrent database transactions?',
+        marks: 2,
+        options: [
+          'Using optimistic locking',
+          'Using database-level locks',
+          'Using the atomic() method for transactions',
+          'Both b and c'
+        ],
+        correctAnswer: 3,
+      },
+      {
+        id: 9,
+        section: 'mcq',
+        questionText: 'Which of the following is a recommended method to implement real-time features in Django?',
+        marks: 2,
+        options: [
+          'Using Django Channels',
+          'Using AJAX polling',
+          'Using Django\'s built-in WebSocket module',
+          'Using session-based caching'
+        ],
+        correctAnswer: 0,
+      },
+      {
+        id: 10,
+        section: 'mcq',
+        questionText: 'How can you improve the performance of Django queries when dealing with large datasets?',
+        marks: 2,
+        options: [
+          'Using values_list() instead of all()',
+          'Using prefetch_related() and select_related()',
+          'Using database indexing',
+          'All of the above'
+        ],
+        correctAnswer: 3,
+      },
+      {
+        id: 11,
+        section: 'coding',
+        questionText: 'Write a Django model for an ECommerceOrder that includes fields for order ID, customer, total amount, and a status field with choices (\'Pending\', \'Shipped\', \'Delivered\').',
+        marks: 10,
+        codeSnippet: '# models.py\nfrom django.db import models\n\n# Your code here',
+      },
+      {
+        id: 12,
+        section: 'coding',
+        questionText: 'Create a Django REST framework (DRF) API view to handle user login authentication using JWT.',
+        marks: 20,
+        codeSnippet: '# views.py\nfrom rest_framework.views import APIView\nfrom rest_framework.response import Response\n\n# Your code here',
+      },
+      {
+        id: 13,
+        section: 'coding',
+        questionText: 'Implement a Django signal that sends an email notification when a new user registers.',
+        marks: 20,
+        codeSnippet: '# signals.py\nfrom django.db.models.signals import post_save\nfrom django.dispatch import receiver\nfrom django.contrib.auth.models import User\n\n# Your code here',
+      },
+      {
+        id: 14,
+        section: 'debugging',
+        questionText: 'Fix the following Django query that results in excessive database queries. Optimize it for better performance.\n\n```python\nfrom myapp.models import Order\n\ndef get_orders():\n    orders = Order.objects.all()\n    for order in orders:\n        print(order.customer.name, order.total_price)\n```',
+        marks: 15,
+        codeSnippet: 'from myapp.models import Order\n\ndef get_orders():\n    orders = Order.objects.all()\n    for order in orders:\n        print(order.customer.name, order.total_price)',
+        correctAnswer: 'from myapp.models import Order\n\ndef get_orders():\n    orders = Order.objects.select_related(\'customer\').all()\n    for order in orders:\n        print(order.customer.name, order.total_price)',
+      },
+      {
+        id: 15,
+        section: 'debugging',
+        questionText: 'Identify and fix the error in the following Django model definition.\n\n```python\nfrom django.db import models\n\nclass Product(models.Model):\n    name = models.CharField(max=200)\n    description = models.Text()\n    price = models.DecimalField()\n    created_at = models.Date()\n```',
+        marks: 15,
+        codeSnippet: 'from django.db import models\n\nclass Product(models.Model):\n    name = models.CharField(max=200)\n    description = models.Text()\n    price = models.DecimalField()\n    created_at = models.Date()',
+        correctAnswer: 'from django.db import models\n\nclass Product(models.Model):\n    name = models.CharField(max_length=200)\n    description = models.TextField()\n    price = models.DecimalField(max_digits=10, decimal_places=2)\n    created_at = models.DateField(auto_now_add=True)',
+      },
+    ],
+  },
+  {
     id: 'nextjs-technical-test-set-2',
     title: 'Next.js Technical Test - Set 2',
     description:
