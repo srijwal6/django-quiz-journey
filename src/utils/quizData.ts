@@ -1,10 +1,11 @@
+
 export interface Question {
   id: number;
   section: 'mcq' | 'coding' | 'debugging';
   questionText: string;
   marks: number;
   options?: string[];
-  correctAnswer?: number;
+  correctAnswer?: number | string; // Updated to allow both string and number
   codeSnippet?: string;
 }
 
@@ -15,6 +16,16 @@ export interface QuizSet {
   totalMarks: number;
   timeLimit: number;
   questions: Question[];
+}
+
+export interface QuizState {
+  quizSetId: string | null;
+  currentSection: 'mcq' | 'coding' | 'debugging';
+  currentQuestionIndex: number;
+  answers: Record<number, string | number>;
+  score: number;
+  timeRemaining: number;
+  isCompleted: boolean;
 }
 
 export let quizSets: QuizSet[] = [
@@ -209,4 +220,29 @@ export const addQuizSet = (quizSet) => {
 
 export const getQuizSet = (quizSetId: string) => {
   return quizSets.find((quizSet) => quizSet.id === quizSetId);
+};
+
+// Add the missing functions
+export const getQuizSetById = (quizSetId: string) => {
+  return getQuizSet(quizSetId);
+};
+
+export const getQuestionsForSection = (quizSetId: string, section: 'mcq' | 'coding' | 'debugging') => {
+  const quizSet = getQuizSet(quizSetId);
+  if (!quizSet) return [];
+  
+  return quizSet.questions.filter(q => q.section === section);
+};
+
+export const calculateScore = (answers: Record<number, string | number>, questions: Question[]) => {
+  let score = 0;
+  
+  questions.forEach(question => {
+    const userAnswer = answers[question.id];
+    if (userAnswer !== undefined && userAnswer === question.correctAnswer) {
+      score += question.marks || 0;
+    }
+  });
+  
+  return score;
 };
