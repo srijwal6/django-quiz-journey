@@ -11,9 +11,9 @@ const Index = () => {
       
       <main className="pt-20 px-4">
         <div className="max-w-6xl mx-auto py-12 md:py-24 flex flex-col items-center text-center">
-          <h1 className="text-4xl md:text-6xl font-bold mb-6">Django Technical Tests</h1>
+          <h1 className="text-4xl md:text-6xl font-bold mb-6">Tegain Certification Tests</h1>
           <p className="text-xl text-muted-foreground max-w-2xl mb-10">
-            Test your Django skills with our comprehensive technical assessments for developers of all levels.
+            Test your technical skills with our comprehensive certification assessments for developers of all levels.
           </p>
           
           <Link to="/quizzes" className="group btn-primary">
@@ -28,7 +28,7 @@ const Index = () => {
               </div>
               <h3 className="text-xl font-medium mb-2">Multiple Quiz Sets</h3>
               <p className="text-muted-foreground">
-                Choose from a variety of technical tests covering different aspects of Django development.
+                Choose from a variety of technical tests covering different aspects of development.
               </p>
             </div>
             

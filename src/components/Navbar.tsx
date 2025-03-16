@@ -23,10 +23,10 @@ const Navbar: React.FC<NavbarProps> = ({ timeRemaining, isQuizActive }) => {
     <header className="fixed top-0 left-0 right-0 z-50 glass-panel py-3 px-6 flex items-center justify-between animate-fade-in">
       <div className="flex items-center gap-2">
         <div className="h-8 w-8 bg-primary rounded-lg flex items-center justify-center">
-          <span className="text-white font-bold text-sm">DQ</span>
+          <span className="text-white font-bold text-sm">TC</span>
         </div>
         <Link to="/" className="text-lg font-medium transition hover:opacity-80">
-          Django Quiz Journey
+          Tegain Certification Test
         </Link>
       </div>
       
