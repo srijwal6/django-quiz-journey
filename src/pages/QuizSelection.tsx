@@ -50,10 +50,7 @@ const QuizSelection = () => {
               onClick={() => handleSelectQuiz(quizSet.id)}
             >
               <div className="flex flex-col h-full">
-                <h3 className="text-xl font-medium mb-2">{quizSet.title}</h3>
-                <p className="text-muted-foreground mb-6 flex-grow">
-                  {quizSet.description}
-                </p>
+                <h3 className="text-xl font-medium mb-6">{quizSet.title}</h3>
                 
                 <div className="border-t pt-4 mt-auto">
                   <div className="flex flex-wrap items-center gap-4">

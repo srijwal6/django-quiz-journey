@@ -90,67 +90,6 @@ export let quizSets: QuizSet[] = [
     ],
   },
   {
-    id: 'reactjs-technical-test-set-1',
-    title: 'React.js Technical Test - Set 1',
-    description:
-      'Evaluate your React.js proficiency with this set of technical questions and coding challenges.',
-    totalMarks: 100,
-    timeLimit: 5400,
-    questions: [
-      {
-        id: 1,
-        section: 'mcq',
-        questionText: 'What is the purpose of `useState` hook in React?',
-        marks: 10,
-        options: [
-          'To define a functional component',
-          'To add state to functional components',
-          'To render UI',
-          'To fetch data from an API',
-        ],
-        correctAnswer: 1,
-      },
-      {
-        id: 2,
-        section: 'coding',
-        questionText:
-          'Create a React component that displays a counter. Include buttons to increment and decrement the counter value.',
-        marks: 30,
-        codeSnippet:
-          '// components/Counter.js\nimport React, { useState } from \'react\';\n\nfunction Counter() {\n  // Your code here\n}\n\nexport default Counter;',
-      },
-      {
-        id: 3,
-        section: 'debugging',
-        questionText:
-          'The following React component is not updating the state correctly. Identify and fix the issue.\n\n```jsx\n// components/Toggle.js\nimport React, { useState } from \'react\';\n\nfunction Toggle() {\n  const [isToggled, setIsToggled] = useState(false);\n\n  const toggle = () => {\n    setIsToggled(!isToggled);\n  };\n\n  return (\n    <button onClick={toggle}>\n      {isToggled ? \'On\' : \'Off\'}\n    </button>\n  );\n}\n\nexport default Toggle;\n```',
-        marks: 30,
-      },
-      {
-        id: 4,
-        section: 'mcq',
-        questionText: 'What is the significance of keys in React lists?',
-        marks: 10,
-        options: [
-          'To style list items',
-          'To uniquely identify list items',
-          'To add interactivity to list items',
-          'To define the order of list items',
-        ],
-        correctAnswer: 1,
-      },
-      {
-        id: 5,
-        section: 'coding',
-        questionText:
-          'Implement a React component that fetches data from an API and displays it in a list. Handle loading and error states gracefully.',
-        marks: 20,
-        codeSnippet:
-          '// components/DataList.js\nimport React, { useState, useEffect } from \'react\';\n\nfunction DataList() {\n  // Your code here\n}\n\nexport default DataList;',
-      },
-    ],
-  },
-  {
     id: 'django-technical-test-set-1',
     title: 'Django Technical Test - Set 1',
     description:
@@ -384,7 +323,7 @@ export let quizSets: QuizSet[] = [
         questionText: 'Identify and fix the error in the following Django model definition.\n\n```python\nfrom django.db import models\n\nclass Product(models.Model):\n    name = models.CharField(max=200)\n    description = models.Text()\n    price = models.DecimalField()\n    created_at = models.Date()\n```',
         marks: 15,
         codeSnippet: 'from django.db import models\n\nclass Product(models.Model):\n    name = models.CharField(max=200)\n    description = models.Text()\n    price = models.DecimalField()\n    created_at = models.Date()',
-        correctAnswer: 'from django.db import models\n\nclass Product(models.Model):\n    name = models.CharField(max_length=200)\n    description = models.TextField()\n    price = models.DecimalField(max_digits=10, decimal_places=2)\n    created_at = models.DateField(auto_now_add=True)',
+        correctAnswer: 'from myapp.models import Order\n\ndef get_orders():\n    orders = Order.objects.select_related(\'customer\').all()\n    for order in orders:\n        print(order.customer.name, order.total_price)',
       },
     ],
   },
