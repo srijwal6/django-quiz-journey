@@ -1,6 +1,6 @@
 
 import React, { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -23,12 +23,16 @@ const Login = () => {
   const { login, isAuthenticated } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const location = useLocation();
+  
+  // Get the redirect path from location state or default to home
+  const from = location.state?.from?.pathname || "/";
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate("/");
+      navigate(from, { replace: true });
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, navigate, from]);
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -46,7 +50,7 @@ const Login = () => {
         title: "Login Successful",
         description: `Welcome back, ${data.username}!`,
       });
-      navigate("/");
+      navigate(from, { replace: true });
     } else {
       toast({
         title: "Login Failed",
