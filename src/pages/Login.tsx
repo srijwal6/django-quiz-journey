@@ -13,14 +13,14 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Link } from "react-router-dom";
 
 const loginSchema = z.object({
-  username: z.string().min(3, "Username must be at least 3 characters"),
+  email: z.string().email("Please enter a valid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 
 const Login = () => {
-  const { login, isAuthenticated } = useAuth();
+  const { login, isAuthenticated, isLoading } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
@@ -29,36 +29,44 @@ const Login = () => {
   const from = location.state?.from?.pathname || "/";
 
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && !isLoading) {
       navigate(from, { replace: true });
     }
-  }, [isAuthenticated, navigate, from]);
+  }, [isAuthenticated, isLoading, navigate, from]);
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      username: "",
+      email: "",
       password: "",
     },
   });
 
   const onSubmit = async (data: LoginFormValues) => {
-    const success = await login(data.username, data.password);
+    const { error, success } = await login(data.email, data.password);
     
     if (success) {
       toast({
         title: "Login Successful",
-        description: `Welcome back, ${data.username}!`,
+        description: `Welcome back!`,
       });
       navigate(from, { replace: true });
     } else {
       toast({
         title: "Login Failed",
-        description: "Invalid username or password",
+        description: error?.message || "Invalid email or password",
         variant: "destructive",
       });
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="container max-w-md mx-auto py-10 flex justify-center">
+        <p>Loading...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="container max-w-md mx-auto py-10">
@@ -72,12 +80,12 @@ const Login = () => {
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
                 control={form.control}
-                name="username"
+                name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Username</FormLabel>
+                    <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter your username" {...field} />
+                      <Input placeholder="Enter your email" type="email" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

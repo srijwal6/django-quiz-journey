@@ -9,19 +9,23 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
   const { toast } = useToast();
   const location = useLocation();
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (!isLoading && !isAuthenticated) {
       toast({
         title: "Authentication Required",
         description: "Please log in to access this page.",
         variant: "destructive",
       });
     }
-  }, [isAuthenticated, toast]);
+  }, [isAuthenticated, isLoading, toast]);
+
+  if (isLoading) {
+    return <div className="flex justify-center items-center min-h-screen">Loading...</div>;
+  }
 
   if (!isAuthenticated) {
     // Save the current location to redirect back after login
