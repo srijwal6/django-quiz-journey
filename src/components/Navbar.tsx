@@ -1,7 +1,15 @@
 
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Clock } from 'lucide-react';
+import { Clock, LogIn, LogOut, UserPlus } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 interface NavbarProps {
   timeRemaining?: number;
@@ -10,6 +18,7 @@ interface NavbarProps {
 
 const Navbar: React.FC<NavbarProps> = ({ timeRemaining, isQuizActive }) => {
   const location = useLocation();
+  const { isAuthenticated, user, logout } = useAuth();
   
   const formatTime = (seconds: number): string => {
     const hours = Math.floor(seconds / 3600);
@@ -45,13 +54,41 @@ const Navbar: React.FC<NavbarProps> = ({ timeRemaining, isQuizActive }) => {
           >
             Home
           </Link>
-          {location.pathname !== '/quiz' && (
-            <Link
-              to="/quiz"
-              className="btn-primary"
-            >
-              Start Quiz
-            </Link>
+          
+          {isAuthenticated ? (
+            <>
+              <Link 
+                to="/quizzes" 
+                className={`text-sm transition-colors hover:text-primary ${location.pathname === '/quizzes' ? 'text-primary font-medium' : 'text-muted-foreground'}`}
+              >
+                Quizzes
+              </Link>
+              
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="flex items-center gap-2">
+                    <span>{user?.username}</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={logout} className="cursor-pointer">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Logout</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </>
+          ) : (
+            <>
+              <Link to="/login" className="flex items-center gap-1 text-sm text-muted-foreground hover:text-primary">
+                <LogIn className="h-4 w-4" />
+                <span>Login</span>
+              </Link>
+              <Link to="/signup" className="btn-primary flex items-center gap-1">
+                <UserPlus className="h-4 w-4" />
+                <span>Sign up</span>
+              </Link>
+            </>
           )}
         </nav>
       </div>
