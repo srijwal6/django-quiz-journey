@@ -27,27 +27,7 @@ export interface QuizState {
   isCompleted: boolean;
 }
 
-// Load quiz sets from localStorage or use default data
-const loadQuizSets = (): QuizSet[] => {
-  const storedQuizSets = localStorage.getItem('quizSets');
-  if (storedQuizSets) {
-    try {
-      return JSON.parse(storedQuizSets);
-    } catch (error) {
-      console.error('Failed to parse stored quiz sets:', error);
-      return defaultQuizSets;
-    }
-  }
-  return defaultQuizSets;
-};
-
-// Save quiz sets to localStorage
-const saveQuizSets = (quizSets: QuizSet[]) => {
-  localStorage.setItem('quizSets', JSON.stringify(quizSets));
-};
-
-// Default quiz sets
-const defaultQuizSets: QuizSet[] = [
+export let quizSets: QuizSet[] = [
   {
     id: 'nextjs-technical-test-set-1',
     title: 'Next.js Technical Test - Set 1',
@@ -640,31 +620,8 @@ const defaultQuizSets: QuizSet[] = [
   },
 ];
 
-export let quizSets: QuizSet[] = loadQuizSets();
-
-export const addQuizSet = (quizSet: QuizSet) => {
+export const addQuizSet = (quizSet) => {
   quizSets.push(quizSet);
-  saveQuizSets(quizSets);
-};
-
-export const updateQuizSet = (updatedQuizSet: QuizSet) => {
-  const index = quizSets.findIndex(qs => qs.id === updatedQuizSet.id);
-  if (index !== -1) {
-    quizSets[index] = updatedQuizSet;
-    saveQuizSets(quizSets);
-    return true;
-  }
-  return false;
-};
-
-export const deleteQuizSet = (quizSetId: string) => {
-  const initialLength = quizSets.length;
-  quizSets = quizSets.filter(qs => qs.id !== quizSetId);
-  if (quizSets.length !== initialLength) {
-    saveQuizSets(quizSets);
-    return true;
-  }
-  return false;
 };
 
 export const getQuizSet = (quizSetId: string) => {
@@ -693,33 +650,4 @@ export const calculateScore = (answers: Record<number, string | number>, questio
   });
   
   return score;
-};
-
-export interface QuizResult {
-  userId: string;
-  username: string;
-  quizSetId: string;
-  score: number;
-  totalMarks: number;
-  completedAt: string;
-  answers: Record<number, string | number>;
-}
-
-export const saveQuizResult = (result: QuizResult) => {
-  const storedResults = localStorage.getItem('quizResults');
-  const results: QuizResult[] = storedResults ? JSON.parse(storedResults) : [];
-  results.push(result);
-  localStorage.setItem('quizResults', JSON.stringify(results));
-};
-
-export const getUserResults = (userId: string): QuizResult[] => {
-  const storedResults = localStorage.getItem('quizResults');
-  const results: QuizResult[] = storedResults ? JSON.parse(storedResults) : [];
-  return results.filter(result => result.userId === userId);
-};
-
-export const getQuizResults = (quizSetId: string): QuizResult[] => {
-  const storedResults = localStorage.getItem('quizResults');
-  const results: QuizResult[] = storedResults ? JSON.parse(storedResults) : [];
-  return results.filter(result => result.quizSetId === quizSetId);
 };

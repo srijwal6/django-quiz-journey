@@ -13,7 +13,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Link } from "react-router-dom";
 
 const signupSchema = z.object({
-  email: z.string().email("Please enter a valid email address"),
+  username: z.string().min(3, "Username must be at least 3 characters"),
   password: z.string().min(6, "Password must be at least 6 characters"),
   confirmPassword: z.string().min(6, "Confirm password must be at least 6 characters"),
 }).refine((data) => data.password === data.confirmPassword, {
@@ -24,44 +24,36 @@ const signupSchema = z.object({
 type SignupFormValues = z.infer<typeof signupSchema>;
 
 const Signup = () => {
-  const { signup, isLoading } = useAuth();
+  const { signup } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
   const form = useForm<SignupFormValues>({
     resolver: zodResolver(signupSchema),
     defaultValues: {
-      email: "",
+      username: "",
       password: "",
       confirmPassword: "",
     },
   });
 
   const onSubmit = async (data: SignupFormValues) => {
-    const { error, success } = await signup(data.email, data.password);
+    const success = await signup(data.username, data.password);
     
     if (success) {
       toast({
         title: "Account Created",
-        description: `Welcome! Please sign in with your new account.`,
+        description: `Welcome, ${data.username}!`,
       });
-      navigate("/login");
+      navigate("/quizzes");
     } else {
       toast({
         title: "Signup Failed",
-        description: error?.message || "Could not create account. Please try again.",
+        description: "Could not create account. Please try again.",
         variant: "destructive",
       });
     }
   };
-
-  if (isLoading) {
-    return (
-      <div className="container max-w-md mx-auto py-10 flex justify-center">
-        <p>Loading...</p>
-      </div>
-    );
-  }
 
   return (
     <div className="container max-w-md mx-auto py-10">
@@ -75,12 +67,12 @@ const Signup = () => {
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
                 control={form.control}
-                name="email"
+                name="username"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel>Username</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter your email" type="email" {...field} />
+                      <Input placeholder="Choose a username" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
