@@ -232,7 +232,7 @@ const Results = () => {
               to="/quizzes"
               className="bg-secondary text-foreground px-4 py-2 rounded-lg hover:bg-secondary/80 transition-colors"
             >
-              Back to Quizzes
+              Back to Test
             </Link>
             
             <Link 
