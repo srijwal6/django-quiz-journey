@@ -1,18 +1,20 @@
+
 import React, { useEffect, useState } from 'react';
 import { useLocation, Link, useParams } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import { Button } from '@/components/ui/button';
-import { calculateScore, getQuizSetById } from '@/utils/quizData';
+import { calculateScore, getQuizSetById, saveQuizResult } from '@/utils/quizData';
 import { formatTime, getGrade } from '@/utils/formatters';
 import AttendeeDetailsForm from '@/components/results/AttendeeDetailsForm';
 import AutoSubmitWarning from '@/components/results/AutoSubmitWarning';
-import emailjs from 'emailjs-com';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Results = () => {
   const { toast } = useToast();
   const location = useLocation();
   const { quizSetId } = useParams<{ quizSetId: string }>();
+  const { isAuthenticated } = useAuth();
   const { answers, timeSpent, autoSubmitted, attendeeDetails } = location.state || { 
     answers: {}, 
     timeSpent: 0, 
@@ -20,6 +22,7 @@ const Results = () => {
     attendeeDetails: null
   };
   
+  const [quizSet, setQuizSet] = useState(null);
   const [scoreData, setScoreData] = useState({
     score: 0,
     totalMarks: 0,
@@ -31,177 +34,111 @@ const Results = () => {
   });
   const [detailsSubmitted, setDetailsSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [loading, setLoading] = useState(true);
   
   useEffect(() => {
-    if (!quizSetId) return;
-    
-    const quizSet = getQuizSetById(quizSetId);
-    if (!quizSet) return;
-    
-    const calculatedScore = calculateScore(answers, quizSet.questions);
-    const total = quizSet.questions.reduce((sum, q) => sum + (q.marks || 0), 0);
-    
-    const mcqQuestions = quizSet.questions.filter(q => q.section === 'mcq');
-    const codingQuestions = quizSet.questions.filter(q => q.section === 'coding');
-    const debuggingQuestions = quizSet.questions.filter(q => q.section === 'debugging');
-    
-    setScoreData({
-      score: calculatedScore,
-      totalMarks: total,
-      sectionScores: {
-        mcq: {
-          score: calculateScore(answers, mcqQuestions),
-          total: mcqQuestions.reduce((sum, q) => sum + (q.marks || 0), 0)
-        },
-        coding: {
-          score: calculateScore(answers, codingQuestions),
-          total: codingQuestions.reduce((sum, q) => sum + (q.marks || 0), 0)
-        },
-        debugging: {
-          score: calculateScore(answers, debuggingQuestions),
-          total: debuggingQuestions.reduce((sum, q) => sum + (q.marks || 0), 0)
+    const fetchQuizSet = async () => {
+      if (!quizSetId) return;
+      
+      try {
+        setLoading(true);
+        const fetchedQuizSet = await getQuizSetById(quizSetId);
+        setQuizSet(fetchedQuizSet);
+        
+        if (fetchedQuizSet) {
+          const calculatedScore = calculateScore(answers, fetchedQuizSet.questions);
+          const total = fetchedQuizSet.questions.reduce((sum, q) => sum + (q.marks || 0), 0);
+          
+          const mcqQuestions = fetchedQuizSet.questions.filter(q => q.section === 'mcq');
+          const codingQuestions = fetchedQuizSet.questions.filter(q => q.section === 'coding');
+          const debuggingQuestions = fetchedQuizSet.questions.filter(q => q.section === 'debugging');
+          
+          setScoreData({
+            score: calculatedScore,
+            totalMarks: total,
+            sectionScores: {
+              mcq: {
+                score: calculateScore(answers, mcqQuestions),
+                total: mcqQuestions.reduce((sum, q) => sum + (q.marks || 0), 0)
+              },
+              coding: {
+                score: calculateScore(answers, codingQuestions),
+                total: codingQuestions.reduce((sum, q) => sum + (q.marks || 0), 0)
+              },
+              debugging: {
+                score: calculateScore(answers, debuggingQuestions),
+                total: debuggingQuestions.reduce((sum, q) => sum + (q.marks || 0), 0)
+              }
+            }
+          });
         }
+      } catch (error) {
+        console.error('Error fetching quiz set:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to load quiz data',
+          variant: 'destructive'
+        });
+      } finally {
+        setLoading(false);
       }
-    });
-  }, [quizSetId, answers]);
+    };
+    
+    fetchQuizSet();
+  }, [quizSetId, answers, toast]);
   
-  const quizSet = quizSetId ? getQuizSetById(quizSetId) : null;
   const { score, totalMarks, sectionScores } = scoreData;
   const gradeInfo = getGrade(score, totalMarks);
   const percentage = Math.round((score / totalMarks) * 100) || 0;
   
-  const formatAnswersForEmail = (answers, questions) => {
-    if (!questions || !answers) return '';
-    
-    let formattedContent = '';
-    
-    questions.forEach(question => {
-      const userAnswer = answers[question.id];
-      const isCorrect = userAnswer === question.correctAnswer;
-      
-      formattedContent += `\n\nQuestion ${question.id}: ${question.questionText}\n`;
-      
-      if (question.section === 'mcq' && question.options) {
-        formattedContent += `Options:\n`;
-        question.options.forEach((option, index) => {
-          formattedContent += `  ${option}\n`;
-        });
-        
-        if (userAnswer !== undefined) {
-          const selectedOption = question.options[userAnswer];
-          formattedContent += `Candidate's Answer: ${selectedOption}\n`;
-        } else {
-          formattedContent += `Candidate's Answer: Not answered\n`;
-        }
-        
-        const correctOption = question.options[question.correctAnswer];
-        formattedContent += `Correct Answer: ${correctOption}\n`;
-      } else {
-        if (userAnswer) {
-          formattedContent += `Candidate's Answer:\n${userAnswer}\n`;
-        } else {
-          formattedContent += `Candidate's Answer: Not answered\n`;
-        }
-        
-        if (question.correctAnswer) {
-          formattedContent += `Suggested Answer/Solution:\n${question.correctAnswer}\n`;
-        }
-      }
-      
-      formattedContent += `Result: ${isCorrect ? 'Correct' : 'Incorrect'}\n`;
-      formattedContent += `Marks: ${isCorrect ? question.marks : 0}/${question.marks}`;
-    });
-    
-    return formattedContent;
-  };
-  
-  const createEmailMessage = () => {
-    if (!quizSet || !attendeeDetails) return '';
-    
-    const sections = [
-      {
-        title: 'CANDIDATE INFORMATION',
-        content: `Name: ${attendeeDetails.fullName}
-Employee ID: ${attendeeDetails.employeeId}
-Job Title: ${attendeeDetails.jobTitle || 'Not provided'}
-Phone Number: ${attendeeDetails.phoneNumber || 'Not provided'}`
-      },
-      {
-        title: 'SECTION BREAKDOWN',
-        content: `Multiple Choice: ${sectionScores.mcq.score}/${sectionScores.mcq.total}
-Coding Questions: ${sectionScores.coding.score}/${sectionScores.coding.total}
-Debugging Questions: ${sectionScores.debugging.score}/${sectionScores.debugging.total}`
-      },
-      {
-        title: 'DETAILED RESPONSES',
-        content: formatAnswersForEmail(answers, quizSet.questions)
-      }
-    ];
-    
-    let fullMessage = '';
-    sections.forEach(section => {
-      fullMessage += `\n\n=== ${section.title} ===\n${section.content}`;
-    });
-    
-    return fullMessage;
-  };
-  
-  const handleSubmitWithAttendeeDetails = async () => {
-    if (!quizSet || !attendeeDetails) return;
+  const handleSubmitResults = async (details) => {
+    if (!quizSetId || !isAuthenticated) return;
     
     setSubmitting(true);
     
     try {
-      const detailedMessage = createEmailMessage();
-      
-      const emailContent = {
-        to_email: 'certifications@tegain.com',
-        subject: `Certification Test Results: ${quizSet.title}`,
-        message: detailedMessage,
-        attendee_name: attendeeDetails.fullName,
-        employee_id: attendeeDetails.employeeId,
-        job_title: attendeeDetails.jobTitle || 'Not provided',
-        phone_number: attendeeDetails.phoneNumber || 'Not provided',
-        quiz_title: quizSet.title,
-        score: score,
-        total_marks: totalMarks,
-        percentage: percentage,
-        grade: gradeInfo.grade,
-        grade_label: gradeInfo.label,
-        time_spent: timeSpent,
-        section_scores: JSON.stringify(sectionScores),
-        answers: JSON.stringify(answers),
-        questions: JSON.stringify(quizSet.questions)
-      };
-      
-      console.log('Email content prepared:', emailContent);
-      
-      const result = await emailjs.send(
-        import.meta.env.VITE_EMAILJS_SERVICE_ID,
-        import.meta.env.VITE_EMAILJS_TEMPLATE_ID,
-        emailContent,
-        import.meta.env.VITE_EMAILJS_USER_ID
+      // Save quiz results to database
+      const success = await saveQuizResult(
+        quizSetId,
+        score,
+        totalMarks,
+        timeSpent,
+        answers,
+        sectionScores,
+        details
       );
       
-      console.log('Email sent successfully:', result);
-      
-      toast({
-        title: "Test Results Submitted",
-        description: "Your test details have been sent to our certification team",
-      });
-      
-      setDetailsSubmitted(true);
+      if (success) {
+        toast({
+          title: 'Results Saved',
+          description: 'Your test results have been saved successfully'
+        });
+        setDetailsSubmitted(true);
+      } else {
+        throw new Error('Failed to save results');
+      }
     } catch (error) {
-      console.error('Error sending results:', error);
+      console.error('Error saving results:', error);
       toast({
-        title: "Submission Failed",
-        description: "There was a problem submitting your test results. Please try again.",
-        variant: "destructive",
+        title: 'Submission Failed',
+        description: 'There was a problem saving your test results',
+        variant: 'destructive'
       });
     } finally {
       setSubmitting(false);
     }
   };
+  
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="flex items-center justify-center pt-20 h-screen">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+        </div>
+      </div>
+    );
+  }
   
   if (!quizSet) {
     return (
@@ -263,7 +200,7 @@ Debugging Questions: ${sectionScores.debugging.score}/${sectionScores.debugging.
                 </div>
                 
                 <Button 
-                  onClick={handleSubmitWithAttendeeDetails}
+                  onClick={() => handleSubmitResults(attendeeDetails)}
                   disabled={submitting}
                   className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors"
                 >
@@ -280,15 +217,14 @@ Debugging Questions: ${sectionScores.debugging.score}/${sectionScores.debugging.
                 answers={answers}
                 percentage={percentage}
                 gradeInfo={gradeInfo}
-                onSubmitSuccess={() => setDetailsSubmitted(true)}
+                onSubmitSuccess={(details) => handleSubmitResults(details)}
               />
             )
           ) : (
             <div className="glass-panel rounded-2xl p-8 mb-8">
               <h2 className="text-xl font-bold mb-4">Thank You!</h2>
               <p className="text-muted-foreground mb-4">
-                Your test details have been sent to our certification team. You will receive 
-                your official certification status via email shortly.
+                Your test details have been saved. You can view your results and past quiz attempts in your account.
               </p>
             </div>
           )}

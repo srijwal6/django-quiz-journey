@@ -1,3 +1,6 @@
+
+import { supabase } from '@/integrations/supabase/client';
+
 export interface Question {
   id: number;
   section: 'mcq' | 'coding' | 'debugging';
@@ -27,6 +30,7 @@ export interface QuizState {
   isCompleted: boolean;
 }
 
+// Default quiz sets that will be shown before fetching from database
 export let quizSets: QuizSet[] = [
   {
     id: 'nextjs-technical-test-set-1',
@@ -620,20 +624,114 @@ export let quizSets: QuizSet[] = [
   },
 ];
 
-export const addQuizSet = (quizSet) => {
-  quizSets.push(quizSet);
+export const addQuizSet = async (quizSet: QuizSet) => {
+  try {
+    const { data: user } = await supabase.auth.getUser();
+    
+    if (!user.user) {
+      throw new Error('User not authenticated');
+    }
+    
+    const { error } = await supabase.from('custom_quiz_sets').insert({
+      user_id: user.user.id,
+      quiz_set_id: quizSet.id,
+      title: quizSet.title,
+      description: quizSet.description,
+      total_marks: quizSet.totalMarks,
+      time_limit: quizSet.timeLimit,
+      questions: quizSet.questions
+    });
+    
+    if (error) {
+      console.error('Error adding quiz set:', error);
+      throw error;
+    }
+    
+    // Also update the local quizSets array for immediate use
+    quizSets.push(quizSet);
+    
+    return quizSet;
+  } catch (error) {
+    console.error('Error in addQuizSet:', error);
+    throw error;
+  }
+};
+
+export const fetchQuizSets = async (): Promise<QuizSet[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('custom_quiz_sets')
+      .select('*');
+    
+    if (error) {
+      console.error('Error fetching quiz sets:', error);
+      return quizSets; // Return default quizSets if there's an error
+    }
+    
+    if (data && data.length > 0) {
+      // Transform the database records to QuizSet format
+      const customSets: QuizSet[] = data.map(record => ({
+        id: record.quiz_set_id,
+        title: record.title,
+        description: record.description,
+        totalMarks: record.total_marks,
+        timeLimit: record.time_limit,
+        questions: record.questions
+      }));
+      
+      // Combine default and custom quiz sets
+      return [...quizSets, ...customSets];
+    }
+    
+    return quizSets;
+  } catch (error) {
+    console.error('Error in fetchQuizSets:', error);
+    return quizSets;
+  }
 };
 
 export const getQuizSet = (quizSetId: string) => {
   return quizSets.find((quizSet) => quizSet.id === quizSetId);
 };
 
-export const getQuizSetById = (quizSetId: string) => {
-  return getQuizSet(quizSetId);
+export const getQuizSetById = async (quizSetId: string): Promise<QuizSet | null> => {
+  try {
+    // First check local array
+    const localQuizSet = getQuizSet(quizSetId);
+    if (localQuizSet) return localQuizSet;
+    
+    // If not found locally, check database
+    const { data, error } = await supabase
+      .from('custom_quiz_sets')
+      .select('*')
+      .eq('quiz_set_id', quizSetId)
+      .single();
+    
+    if (error) {
+      console.error('Error fetching quiz set:', error);
+      return null;
+    }
+    
+    if (data) {
+      return {
+        id: data.quiz_set_id,
+        title: data.title,
+        description: data.description,
+        totalMarks: data.total_marks,
+        timeLimit: data.time_limit,
+        questions: data.questions
+      };
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('Error in getQuizSetById:', error);
+    return null;
+  }
 };
 
-export const getQuestionsForSection = (quizSetId: string, section: 'mcq' | 'coding' | 'debugging') => {
-  const quizSet = getQuizSet(quizSetId);
+export const getQuestionsForSection = async (quizSetId: string, section: 'mcq' | 'coding' | 'debugging') => {
+  const quizSet = await getQuizSetById(quizSetId);
   if (!quizSet) return [];
   
   return quizSet.questions.filter(q => q.section === section);
@@ -650,4 +748,71 @@ export const calculateScore = (answers: Record<number, string | number>, questio
   });
   
   return score;
+};
+
+export const saveQuizResult = async (
+  quizSetId: string,
+  score: number,
+  totalMarks: number,
+  timeSpent: number,
+  answers: Record<number, string | number>,
+  sectionScores: any,
+  attendeeDetails: any
+) => {
+  try {
+    const { data: user } = await supabase.auth.getUser();
+    
+    if (!user.user) {
+      console.error('User not authenticated');
+      return false;
+    }
+    
+    const { error } = await supabase.from('quiz_history').insert({
+      user_id: user.user.id,
+      quiz_set_id: quizSetId,
+      score,
+      total_marks: totalMarks,
+      time_spent: timeSpent,
+      answers,
+      section_scores: sectionScores,
+      attendee_details: attendeeDetails
+    });
+    
+    if (error) {
+      console.error('Error saving quiz result:', error);
+      return false;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Error in saveQuizResult:', error);
+    return false;
+  }
+};
+
+export const getUserQuizHistory = async () => {
+  try {
+    const { data: user } = await supabase.auth.getUser();
+    
+    if (!user.user) {
+      console.error('User not authenticated');
+      return [];
+    }
+    
+    const { data, error } = await supabase
+      .from('quiz_history')
+      .select('*')
+      .eq('user_id', user.user.id)
+      .order('completed_at', { ascending: false });
+    
+    if (error) {
+      console.error('Error fetching quiz history:', error);
+      return [];
+    }
+    
+    return data || [];
+  } catch (error) {
+    console.error('Error in getUserQuizHistory:', error);
+    return [];
+  }
 };

@@ -19,6 +19,8 @@ import { Label } from '@/components/ui/label';
 import QuestionForm from '@/components/QuestionForm';
 import { addQuizSet } from '@/utils/quizData';
 import { Question } from '@/utils/quizData';
+import { useAuth } from '@/contexts/AuthContext';
+import ProtectedRoute from '@/components/ProtectedRoute';
 
 interface FormQuestion extends Omit<Question, 'id'> {
   tempId: string;
@@ -26,10 +28,12 @@ interface FormQuestion extends Omit<Question, 'id'> {
 
 const AddQuizSet = () => {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [totalMarks, setTotalMarks] = useState(100);
   const [timeLimit, setTimeLimit] = useState(3);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [questions, setQuestions] = useState<FormQuestion[]>([
     {
       tempId: crypto.randomUUID(),
@@ -65,7 +69,7 @@ const AddQuizSet = () => {
     ));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Validation
@@ -123,127 +127,148 @@ const AddQuizSet = () => {
     // Calculate total time in seconds
     const timeLimitInSeconds = timeLimit * 60 * 60;
     
-    // Add the quiz set
-    addQuizSet({
-      id,
-      title,
-      description,
-      totalMarks,
-      timeLimit: timeLimitInSeconds,
-      questions: finalQuestions
-    });
-    
-    toast.success('Quiz set added successfully');
-    navigate('/quizzes');
+    try {
+      setIsSubmitting(true);
+      
+      // Add the quiz set to both local state and database
+      await addQuizSet({
+        id,
+        title,
+        description,
+        totalMarks,
+        timeLimit: timeLimitInSeconds,
+        questions: finalQuestions
+      });
+      
+      toast.success('Quiz set added successfully');
+      navigate('/quizzes');
+    } catch (error) {
+      console.error('Error adding quiz set:', error);
+      toast.error('Failed to add quiz set');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
-      
-      <main className="pt-20 px-4 max-w-4xl mx-auto">
-        <div className="my-10">
-          <h1 className="text-3xl font-bold mb-2">Add New Quiz Set</h1>
-          <p className="text-muted-foreground">
-            Create a new quiz set with multiple choice, coding, and debugging questions
-          </p>
-        </div>
+    <ProtectedRoute>
+      <div className="min-h-screen bg-background">
+        <Navbar />
         
-        <form onSubmit={handleSubmit} className="space-y-8 mb-16">
-          <Card>
-            <CardHeader>
-              <CardTitle>Quiz Set Details</CardTitle>
-              <CardDescription>
-                Enter the basic information for your quiz set
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="title">Quiz Title</Label>
-                <Input 
-                  id="title" 
-                  value={title} 
-                  onChange={e => setTitle(e.target.value)}
-                  placeholder="e.g. Django Technical Test - Set 3"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
-                <Textarea 
-                  id="description" 
-                  value={description} 
-                  onChange={e => setDescription(e.target.value)}
-                  placeholder="Enter a brief description of the quiz"
-                  rows={3}
-                />
-              </div>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <main className="pt-20 px-4 max-w-4xl mx-auto">
+          <div className="my-10">
+            <h1 className="text-3xl font-bold mb-2">Add New Quiz Set</h1>
+            <p className="text-muted-foreground">
+              Create a new quiz set with multiple choice, coding, and debugging questions
+            </p>
+          </div>
+          
+          <form onSubmit={handleSubmit} className="space-y-8 mb-16">
+            <Card>
+              <CardHeader>
+                <CardTitle>Quiz Set Details</CardTitle>
+                <CardDescription>
+                  Enter the basic information for your quiz set
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
                 <div className="space-y-2">
-                  <Label htmlFor="totalMarks">Total Marks</Label>
+                  <Label htmlFor="title">Quiz Title</Label>
                   <Input 
-                    id="totalMarks" 
-                    type="number"
-                    min="1"
-                    value={totalMarks} 
-                    onChange={e => setTotalMarks(Number(e.target.value))}
+                    id="title" 
+                    value={title} 
+                    onChange={e => setTitle(e.target.value)}
+                    placeholder="e.g. Django Technical Test - Set 3"
                   />
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="timeLimit">Time Limit (hours)</Label>
-                  <Input 
-                    id="timeLimit" 
-                    type="number"
-                    min="0.5"
-                    step="0.5"
-                    value={timeLimit} 
-                    onChange={e => setTimeLimit(Number(e.target.value))}
+                  <Label htmlFor="description">Description</Label>
+                  <Textarea 
+                    id="description" 
+                    value={description} 
+                    onChange={e => setDescription(e.target.value)}
+                    placeholder="Enter a brief description of the quiz"
+                    rows={3}
                   />
                 </div>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="totalMarks">Total Marks</Label>
+                    <Input 
+                      id="totalMarks" 
+                      type="number"
+                      min="1"
+                      value={totalMarks} 
+                      onChange={e => setTotalMarks(Number(e.target.value))}
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="timeLimit">Time Limit (hours)</Label>
+                    <Input 
+                      id="timeLimit" 
+                      type="number"
+                      min="0.5"
+                      step="0.5"
+                      value={timeLimit} 
+                      onChange={e => setTimeLimit(Number(e.target.value))}
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-semibold">Questions</h2>
+                <Button 
+                  type="button" 
+                  onClick={handleAddQuestion} 
+                  variant="outline"
+                  className="flex items-center gap-2"
+                >
+                  <Plus className="h-4 w-4" />
+                  Add Question
+                </Button>
               </div>
-            </CardContent>
-          </Card>
-          
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-semibold">Questions</h2>
-              <Button 
-                type="button" 
-                onClick={handleAddQuestion} 
-                variant="outline"
-                className="flex items-center gap-2"
-              >
-                <Plus className="h-4 w-4" />
-                Add Question
-              </Button>
+              
+              {questions.map((question, index) => (
+                <QuestionForm
+                  key={question.tempId}
+                  question={question}
+                  questionNumber={index + 1}
+                  onChange={(updates) => handleQuestionChange(question.tempId, updates)}
+                  onRemove={() => handleRemoveQuestion(question.tempId)}
+                />
+              ))}
             </div>
             
-            {questions.map((question, index) => (
-              <QuestionForm
-                key={question.tempId}
-                question={question}
-                questionNumber={index + 1}
-                onChange={(updates) => handleQuestionChange(question.tempId, updates)}
-                onRemove={() => handleRemoveQuestion(question.tempId)}
-              />
-            ))}
-          </div>
-          
-          <div className="flex justify-end">
-            <Button 
-              type="submit" 
-              size="lg"
-              className="flex items-center gap-2"
-            >
-              <Save className="h-4 w-4" />
-              Save Quiz Set
-            </Button>
-          </div>
-        </form>
-      </main>
-    </div>
+            <div className="flex justify-end">
+              <Button 
+                type="submit" 
+                size="lg"
+                disabled={isSubmitting}
+                className="flex items-center gap-2"
+              >
+                {isSubmitting ? (
+                  <>
+                    <div className="animate-spin mr-2 h-4 w-4 border-t-2 border-b-2 border-current rounded-full"></div>
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4" />
+                    Save Quiz Set
+                  </>
+                )}
+              </Button>
+            </div>
+          </form>
+        </main>
+      </div>
+    </ProtectedRoute>
   );
 };
 

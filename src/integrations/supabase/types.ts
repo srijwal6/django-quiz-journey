@@ -9,6 +9,45 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      custom_quiz_sets: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          questions: Json
+          quiz_set_id: string
+          time_limit: number
+          title: string
+          total_marks: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          id?: string
+          questions: Json
+          quiz_set_id: string
+          time_limit: number
+          title: string
+          total_marks: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          questions?: Json
+          quiz_set_id?: string
+          time_limit?: number
+          title?: string
+          total_marks?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -24,6 +63,45 @@ export type Database = {
           created_at?: string
           id?: string
           username?: string | null
+        }
+        Relationships: []
+      }
+      quiz_history: {
+        Row: {
+          answers: Json
+          attendee_details: Json | null
+          completed_at: string
+          id: string
+          quiz_set_id: string
+          score: number
+          section_scores: Json
+          time_spent: number
+          total_marks: number
+          user_id: string
+        }
+        Insert: {
+          answers: Json
+          attendee_details?: Json | null
+          completed_at?: string
+          id?: string
+          quiz_set_id: string
+          score: number
+          section_scores: Json
+          time_spent: number
+          total_marks: number
+          user_id: string
+        }
+        Update: {
+          answers?: Json
+          attendee_details?: Json | null
+          completed_at?: string
+          id?: string
+          quiz_set_id?: string
+          score?: number
+          section_scores?: Json
+          time_spent?: number
+          total_marks?: number
+          user_id?: string
         }
         Relationships: []
       }
