@@ -20,10 +20,17 @@ import {
 } from '@/components/ui/select';
 import { Question } from '@/utils/quizData';
 
+// Extend the Question type to include tempId for form handling
+export interface FormQuestion extends Omit<Question, 'id'> {
+  tempId: string;
+  questionText: string;
+  codeSnippet?: string;
+}
+
 interface QuestionFormProps {
-  question: Omit<Question, 'id'> & { tempId: string };
+  question: FormQuestion;
   questionNumber: number;
-  onChange: (updates: Partial<Omit<Question, 'id'> & { tempId: string }>) => void;
+  onChange: (updates: Partial<FormQuestion>) => void;
   onRemove: () => void;
 }
 
@@ -37,7 +44,16 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
     if (!question.options) return;
     
     const newOptions = [...question.options];
-    newOptions[index] = value;
+    const option = newOptions[index];
+    
+    if (typeof option === 'string') {
+      // Handle string options (legacy format)
+      newOptions[index] = value;
+    } else {
+      // Handle object options (new format)
+      newOptions[index] = { ...option, text: value };
+    }
+    
     onChange({ options: newOptions });
   };
 
@@ -69,8 +85,13 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
               } : {}),
               // Add options for MCQ type
               ...((value === 'mcq' && question.section !== 'mcq') ? { 
-                options: ['', '', '', ''],
-                correctAnswer: 0,
+                options: [
+                  { id: 'a', text: '', isCorrect: false },
+                  { id: 'b', text: '', isCorrect: false },
+                  { id: 'c', text: '', isCorrect: false },
+                  { id: 'd', text: '', isCorrect: false }
+                ],
+                correctAnswer: 'a',
                 codeSnippet: undefined
               } : {}),
               // Add codeSnippet for coding/debugging
@@ -118,24 +139,35 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
         {question.section === 'mcq' && question.options && (
           <div className="space-y-4">
             <Label>Options</Label>
-            {question.options.map((option, index) => (
-              <div key={index} className="flex items-center gap-3">
-                <div className="flex items-center justify-center w-8 h-8 bg-muted rounded-full">
-                  {String.fromCharCode(97 + index)}
+            {question.options.map((option, index) => {
+              const optionText = typeof option === 'string' ? option : option.text;
+              
+              return (
+                <div key={index} className="flex items-center gap-3">
+                  <div className="flex items-center justify-center w-8 h-8 bg-muted rounded-full">
+                    {String.fromCharCode(97 + index)}
+                  </div>
+                  <Input 
+                    value={optionText}
+                    onChange={(e) => handleOptionChange(index, e.target.value)}
+                    placeholder={`Option ${String.fromCharCode(97 + index)}`}
+                  />
                 </div>
-                <Input 
-                  value={option}
-                  onChange={(e) => handleOptionChange(index, e.target.value)}
-                  placeholder={`Option ${String.fromCharCode(97 + index)}`}
-                />
-              </div>
-            ))}
+              );
+            })}
             
             <div className="space-y-2">
               <Label>Correct Answer</Label>
               <Select 
-                value={String(question.correctAnswer ?? 0)} 
-                onValueChange={(value) => onChange({ correctAnswer: Number(value) })}
+                value={typeof question.correctAnswer === 'number' ? 
+                  String(question.correctAnswer) : 
+                  (question.correctAnswer || 'a')} 
+                onValueChange={(value) => {
+                  const isNumeric = !isNaN(Number(value));
+                  onChange({ 
+                    correctAnswer: isNumeric ? Number(value) : value 
+                  });
+                }}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select correct answer" />

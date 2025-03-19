@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 
 interface CodeEditorProps {
   question: Question;
-  onAnswer: (questionId: number, answer: string) => void;
+  onAnswer: (questionId: string, answer: string) => void;
   currentAnswer?: string;
   onNext: () => void;
   onPrevious: () => void;
@@ -23,7 +23,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
   hasNext,
   hasPrevious
 }) => {
-  const [code, setCode] = useState(currentAnswer || question.codeSnippet || '');
+  const [code, setCode] = useState(currentAnswer || question.codeSnippet || question.code || '');
   const [isSubmitted, setIsSubmitted] = useState(false);
   
   useEffect(() => {
@@ -31,10 +31,10 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
       setCode(currentAnswer);
       setIsSubmitted(true);
     } else {
-      setCode(question.codeSnippet || '');
+      setCode(question.codeSnippet || question.code || '');
       setIsSubmitted(false);
     }
-  }, [question.id, currentAnswer, question.codeSnippet]);
+  }, [question.id, currentAnswer, question.codeSnippet, question.code]);
   
   const handleCodeChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setCode(e.target.value);
@@ -56,7 +56,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
             {question.marks} Marks
           </span>
         </div>
-        <h3 className="text-xl font-medium mt-2">{question.questionText}</h3>
+        <h3 className="text-xl font-medium mt-2">{question.questionText || question.text}</h3>
       </div>
       
       <div className="mt-6 border rounded-lg overflow-hidden bg-slate-950">

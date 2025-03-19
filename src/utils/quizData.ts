@@ -1,14 +1,15 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { v4 as uuidv4 } from 'uuid';
 
 export interface Question {
   id: string;
-  type: 'multiple-choice' | 'coding' | 'text';
+  type: 'multiple-choice' | 'text' | 'coding' | 'debugging';
   text: string;
+  questionText?: string;
   code?: string;
+  codeSnippet?: string;
   options?: Array<{ id: string; text: string; isCorrect: boolean }>;
-  correctAnswer?: string;
+  correctAnswer?: string | number;
   section: string;
   marks: number;
 }
@@ -27,6 +28,16 @@ export interface SectionScore {
   score: number;
   totalMarks: number;
   percentage: number;
+}
+
+export interface QuizState {
+  quizSetId: string | null;
+  currentSection: string;
+  currentQuestionIndex: number;
+  answers: Record<string, any>;
+  score: number;
+  timeRemaining: number;
+  isCompleted: boolean;
 }
 
 // Sample quiz data (as fallback if DB fetch fails)
@@ -121,7 +132,7 @@ const mockQuizSets: QuizSet[] = [
 ];
 
 // Function to save a new quiz set to Supabase
-export const saveQuizSet = async (quizSet: Omit<QuizSet, 'id'>): Promise<string | null> => {
+export const saveQuizSet = async (quizSet: QuizSet): Promise<string | null> => {
   try {
     const { data: userData, error: userError } = await supabase.auth.getUser();
     
@@ -131,7 +142,7 @@ export const saveQuizSet = async (quizSet: Omit<QuizSet, 'id'>): Promise<string 
     }
     
     const userId = userData.user.id;
-    const quizSetId = uuidv4();
+    const quizSetId = quizSet.id || uuidv4();
     
     // We need to stringify the questions array to store it as JSONB
     const { data, error } = await supabase
@@ -157,6 +168,9 @@ export const saveQuizSet = async (quizSet: Omit<QuizSet, 'id'>): Promise<string 
     return null;
   }
 };
+
+// Adding this as an alias for saveQuizSet for backward compatibility
+export const addQuizSet = saveQuizSet;
 
 // Function to fetch all quiz sets from Supabase and mock data
 export const fetchQuizSets = async (): Promise<QuizSet[]> => {
@@ -270,6 +284,9 @@ export const saveQuizResults = async (
   }
 };
 
+// Adding this as an alias for saveQuizResults for backward compatibility
+export const saveQuizResult = saveQuizResults;
+
 // Function to calculate section scores
 export const calculateSectionScores = (
   questions: Question[],
@@ -301,7 +318,8 @@ export const calculateSectionScores = (
           sectionScore += q.marks;
         }
       } else if (q.type === 'text' && q.correctAnswer) {
-        if (answer && answer.toLowerCase() === q.correctAnswer.toLowerCase()) {
+        if (answer && typeof answer === 'string' && typeof q.correctAnswer === 'string' && 
+            answer.toLowerCase() === q.correctAnswer.toLowerCase()) {
           sectionScore += q.marks;
         }
       }
@@ -321,6 +339,35 @@ export const calculateSectionScores = (
   });
   
   return sectionScores;
+};
+
+// Simple function to calculate score from answers
+export const calculateScore = (answers: Record<string, any>, questions: Question[]): number => {
+  let totalScore = 0;
+  
+  questions.forEach(q => {
+    const answer = answers[q.id];
+    
+    if (q.type === 'multiple-choice' && Array.isArray(q.options)) {
+      const correctOption = q.options.find(opt => opt.isCorrect);
+      if (correctOption && answer === correctOption.id) {
+        totalScore += q.marks;
+      }
+    } else if (q.type === 'text' && q.correctAnswer) {
+      if (answer && typeof answer === 'string' && typeof q.correctAnswer === 'string' && 
+          answer.toLowerCase() === q.correctAnswer.toLowerCase()) {
+        totalScore += q.marks;
+      }
+    }
+    // For coding questions, we don't auto-grade
+  });
+  
+  return totalScore;
+};
+
+// Helper function to get questions for a specific section
+export const getQuestionsForSection = (questions: Question[], section: string): Question[] => {
+  return questions.filter(q => q.section === section);
 };
 
 // Function to fetch quiz history for current user

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
@@ -6,7 +5,7 @@ import ProgressBar from '@/components/ProgressBar';
 import QuizCard from '@/components/QuizCard';
 import CodeEditor from '@/components/CodeEditor';
 import AttendeeForm from '@/components/AttendeeForm';
-import { Question, QuizState, getQuestionsForSection, getQuizSetById } from '@/utils/quizData';
+import { Question, QuizState, getQuizSetById } from '@/utils/quizData';
 import { useToast } from '@/hooks/use-toast';
 
 const Quiz = () => {
@@ -14,7 +13,6 @@ const Quiz = () => {
   const { quizSetId } = useParams<{ quizSetId: string }>();
   const { toast } = useToast();
   
-  // State to track if attendee details are collected
   const [attendeeDetails, setAttendeeDetails] = useState<{
     fullName: string;
     employeeId: string;
@@ -25,7 +23,6 @@ const Quiz = () => {
   const [quizSet, setQuizSet] = useState(null);
   const [loading, setLoading] = useState(true);
   
-  // Fetch quiz set data when component mounts
   useEffect(() => {
     const fetchQuizSet = async () => {
       if (!quizSetId) {
@@ -70,11 +67,10 @@ const Quiz = () => {
     currentQuestionIndex: 0,
     answers: {},
     score: 0,
-    timeRemaining: 3 * 60 * 60, // Default
+    timeRemaining: 3 * 60 * 60,
     isCompleted: false
   });
   
-  // Update time remaining when quiz set data is loaded
   useEffect(() => {
     if (quizSet) {
       setQuizState(prev => ({
@@ -86,13 +82,11 @@ const Quiz = () => {
   
   const [currentQuestions, setCurrentQuestions] = useState<Question[]>([]);
   
-  // Initialize timer only after attendee details are collected and quiz is loaded
   useEffect(() => {
     if (!quizSetId || !attendeeDetails || !quizSet) return;
     
     const timer = setInterval(() => {
       setQuizState(prevState => {
-        // If time ran out
         if (prevState.timeRemaining <= 1) {
           clearInterval(timer);
           navigate(`/results/${quizSetId}`, { 
@@ -110,15 +104,13 @@ const Quiz = () => {
       });
     }, 1000);
     
-    // Cleanup timer
     return () => clearInterval(timer);
   }, [navigate, quizSetId, attendeeDetails, quizSet]);
   
-  // When section changes, update questions
   useEffect(() => {
+    if (!quizSetId || !quizSet) return;
+    
     const loadQuestions = async () => {
-      if (!quizSetId || !quizSet) return;
-      
       try {
         const questions = quizSet.questions.filter(q => q.section === quizState.currentSection);
         setCurrentQuestions(questions);
@@ -157,13 +149,11 @@ const Quiz = () => {
   
   const handleNextQuestion = () => {
     if (quizState.currentQuestionIndex < currentQuestions.length - 1) {
-      // Move to next question in current section
       setQuizState(prevState => ({
         ...prevState,
         currentQuestionIndex: prevState.currentQuestionIndex + 1
       }));
     } else {
-      // Move to next section or complete quiz
       if (quizState.currentSection === 'mcq') {
         const codingQuestions = quizSet.questions.filter(q => q.section === 'coding');
         if (codingQuestions.length > 0) {
@@ -189,7 +179,6 @@ const Quiz = () => {
               currentQuestionIndex: 0
             }));
           } else if (quizSetId) {
-            // Quiz completed
             navigate(`/results/${quizSetId}`, { 
               state: { 
                 answers: quizState.answers, 
@@ -212,7 +201,6 @@ const Quiz = () => {
             currentQuestionIndex: 0
           }));
         } else if (quizSetId) {
-          // Quiz completed
           navigate(`/results/${quizSetId}`, { 
             state: { 
               answers: quizState.answers, 
@@ -222,7 +210,6 @@ const Quiz = () => {
           });
         }
       } else if (quizSetId) {
-        // Quiz completed
         navigate(`/results/${quizSetId}`, { 
           state: { 
             answers: quizState.answers, 
@@ -236,13 +223,11 @@ const Quiz = () => {
   
   const handlePreviousQuestion = () => {
     if (quizState.currentQuestionIndex > 0) {
-      // Move to previous question in current section
       setQuizState(prevState => ({
         ...prevState,
         currentQuestionIndex: prevState.currentQuestionIndex - 1
       }));
     } else if (quizSetId && quizSet) {
-      // Move to previous section
       if (quizState.currentSection === 'coding') {
         const mcqQuestions = quizSet.questions.filter(q => q.section === 'mcq');
         if (mcqQuestions.length > 0) {
@@ -285,7 +270,6 @@ const Quiz = () => {
     );
   }
   
-  // Show the attendee form if details haven't been collected yet
   if (!attendeeDetails) {
     return (
       <div className="min-h-screen bg-background pb-16">

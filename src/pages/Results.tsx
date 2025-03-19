@@ -1,9 +1,8 @@
-
 import React, { useEffect, useState } from 'react';
 import { useLocation, Link, useParams } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import { Button } from '@/components/ui/button';
-import { calculateScore, getQuizSetById, saveQuizResult } from '@/utils/quizData';
+import { calculateScore, getQuizSetById, saveQuizResults } from '@/utils/quizData';
 import { formatTime, getGrade } from '@/utils/formatters';
 import AttendeeDetailsForm from '@/components/results/AttendeeDetailsForm';
 import AutoSubmitWarning from '@/components/results/AutoSubmitWarning';
@@ -97,8 +96,7 @@ const Results = () => {
     setSubmitting(true);
     
     try {
-      // Save quiz results to database
-      const success = await saveQuizResult(
+      const success = await saveQuizResults(
         quizSetId,
         score,
         totalMarks,

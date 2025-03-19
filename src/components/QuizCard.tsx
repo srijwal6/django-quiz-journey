@@ -6,7 +6,7 @@ import { CheckCircle, Circle, ChevronRight, ChevronLeft } from 'lucide-react';
 
 interface QuizCardProps {
   question: Question;
-  onAnswer: (questionId: number, answer: string | number) => void;
+  onAnswer: (questionId: string, answer: string) => void;
   selectedAnswer?: string | number;
   onNext: () => void;
   onPrevious: () => void;
@@ -23,8 +23,8 @@ const QuizCard: React.FC<QuizCardProps> = ({
   hasNext,
   hasPrevious
 }) => {
-  const handleSelectOption = (index: number) => {
-    onAnswer(question.id, index);
+  const handleSelectOption = (optionId: string) => {
+    onAnswer(question.id, optionId);
   };
   
   return (
@@ -38,30 +38,35 @@ const QuizCard: React.FC<QuizCardProps> = ({
             {question.marks} Marks
           </span>
         </div>
-        <h3 className="text-xl font-medium mt-2">{question.questionText}</h3>
+        <h3 className="text-xl font-medium mt-2">{question.questionText || question.text}</h3>
       </div>
 
       {question.section === 'mcq' && question.options && (
         <div className="space-y-3 mt-6">
-          {question.options.map((option, index) => (
-            <button
-              key={index}
-              className={cn(
-                "w-full text-left px-4 py-3 rounded-lg border transition-all flex items-center",
-                selectedAnswer === index
-                  ? "border-primary bg-primary/5"
-                  : "border-border hover:border-primary/50 hover:bg-secondary"
-              )}
-              onClick={() => handleSelectOption(index)}
-            >
-              {selectedAnswer === index ? (
-                <CheckCircle className="h-5 w-5 text-primary mr-3 flex-shrink-0" />
-              ) : (
-                <Circle className="h-5 w-5 text-muted-foreground mr-3 flex-shrink-0" />
-              )}
-              <span>{option}</span>
-            </button>
-          ))}
+          {question.options.map((option, index) => {
+            const optionId = typeof option === 'object' ? option.id : String(index);
+            const optionText = typeof option === 'object' ? option.text : option;
+            
+            return (
+              <button
+                key={optionId}
+                className={cn(
+                  "w-full text-left px-4 py-3 rounded-lg border transition-all flex items-center",
+                  selectedAnswer === optionId
+                    ? "border-primary bg-primary/5"
+                    : "border-border hover:border-primary/50 hover:bg-secondary"
+                )}
+                onClick={() => handleSelectOption(optionId)}
+              >
+                {selectedAnswer === optionId ? (
+                  <CheckCircle className="h-5 w-5 text-primary mr-3 flex-shrink-0" />
+                ) : (
+                  <Circle className="h-5 w-5 text-muted-foreground mr-3 flex-shrink-0" />
+                )}
+                <span>{optionText}</span>
+              </button>
+            );
+          })}
         </div>
       )}
       

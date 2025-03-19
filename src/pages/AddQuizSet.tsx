@@ -16,15 +16,10 @@ import {
   CardFooter 
 } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import QuestionForm from '@/components/QuestionForm';
-import { addQuizSet } from '@/utils/quizData';
-import { Question } from '@/utils/quizData';
+import QuestionForm, { FormQuestion } from '@/components/QuestionForm';
+import { saveQuizSet } from '@/utils/quizData';
 import { useAuth } from '@/contexts/AuthContext';
 import ProtectedRoute from '@/components/ProtectedRoute';
-
-interface FormQuestion extends Omit<Question, 'id'> {
-  tempId: string;
-}
 
 const AddQuizSet = () => {
   const navigate = useNavigate();
@@ -37,10 +32,17 @@ const AddQuizSet = () => {
   const [questions, setQuestions] = useState<FormQuestion[]>([
     {
       tempId: crypto.randomUUID(),
+      type: 'multiple-choice',
       section: 'mcq',
       questionText: '',
-      options: ['', '', '', ''],
-      correctAnswer: 0,
+      text: '',
+      options: [
+        { id: 'a', text: '', isCorrect: false },
+        { id: 'b', text: '', isCorrect: false },
+        { id: 'c', text: '', isCorrect: false },
+        { id: 'd', text: '', isCorrect: false }
+      ],
+      correctAnswer: 'a',
       marks: 2
     }
   ]);
@@ -50,10 +52,17 @@ const AddQuizSet = () => {
       ...questions,
       {
         tempId: crypto.randomUUID(),
+        type: 'multiple-choice',
         section: 'mcq',
         questionText: '',
-        options: ['', '', '', ''],
-        correctAnswer: 0,
+        text: '',
+        options: [
+          { id: 'a', text: '', isCorrect: false },
+          { id: 'b', text: '', isCorrect: false },
+          { id: 'c', text: '', isCorrect: false },
+          { id: 'd', text: '', isCorrect: false }
+        ],
+        correctAnswer: 'a',
         marks: 2
       }
     ]);
@@ -98,7 +107,10 @@ const AddQuizSet = () => {
     // For MCQ questions, check if all have options and a correct answer
     const incompleteMcq = questions.find(q => 
       q.section === 'mcq' && 
-      (q.options?.some(opt => !opt.trim()) || q.correctAnswer === undefined)
+      q.options && q.options.some(opt => {
+        const optionText = typeof opt === 'string' ? opt : opt.text;
+        return !optionText.trim();
+      })
     );
     if (incompleteMcq) {
       toast.error('All multiple choice questions must have complete options and a correct answer');
@@ -107,15 +119,18 @@ const AddQuizSet = () => {
 
     // Transform the questions to the final format
     const finalQuestions = questions.map((q, index) => ({
-      id: index + 1,
+      id: `${index + 1}`,
+      type: q.type,
       section: q.section,
-      questionText: q.questionText,
+      text: q.questionText, // Use the text field for the API
+      questionText: q.questionText, // Keep questionText for UI components
       marks: q.marks,
-      ...(q.section === 'mcq' ? { 
+      ...(q.section === 'mcq' && q.options ? { 
         options: q.options,
         correctAnswer: q.correctAnswer 
       } : {}),
       ...(q.section === 'coding' || q.section === 'debugging' ? { 
+        code: q.codeSnippet,
         codeSnippet: q.codeSnippet,
         correctAnswer: q.correctAnswer 
       } : {})
@@ -131,7 +146,7 @@ const AddQuizSet = () => {
       setIsSubmitting(true);
       
       // Add the quiz set to both local state and database
-      await addQuizSet({
+      const result = await saveQuizSet({
         id,
         title,
         description,
@@ -140,8 +155,12 @@ const AddQuizSet = () => {
         questions: finalQuestions
       });
       
-      toast.success('Quiz set added successfully');
-      navigate('/quizzes');
+      if (result) {
+        toast.success('Quiz set added successfully');
+        navigate('/quizzes');
+      } else {
+        throw new Error('Failed to save quiz set');
+      }
     } catch (error) {
       console.error('Error adding quiz set:', error);
       toast.error('Failed to add quiz set');
