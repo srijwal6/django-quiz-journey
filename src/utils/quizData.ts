@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -177,7 +178,9 @@ export const fetchQuizSets = async (): Promise<QuizSet[]> => {
       description: set.description,
       totalMarks: set.total_marks,
       timeLimit: set.time_limit,
-      questions: JSON.parse(set.questions) // Parse the JSON string back to an array
+      questions: typeof set.questions === 'string' 
+        ? JSON.parse(set.questions) 
+        : set.questions // Parse the JSON string back to an array
     }));
     
     // Combine with mock data
@@ -205,7 +208,9 @@ export const getQuizSetById = async (id: string): Promise<QuizSet | null> => {
         description: customSet.description,
         totalMarks: customSet.total_marks,
         timeLimit: customSet.time_limit,
-        questions: JSON.parse(customSet.questions) // Parse the JSON string back to an array
+        questions: typeof customSet.questions === 'string' 
+          ? JSON.parse(customSet.questions)
+          : customSet.questions // Parse the JSON string back to an array
       };
     }
     
@@ -341,9 +346,11 @@ export const fetchQuizHistory = async (): Promise<any[]> => {
     // Parse JSON fields
     return data.map(item => ({
       ...item,
-      answers: JSON.parse(item.answers),
-      section_scores: JSON.parse(item.section_scores),
-      attendee_details: item.attendee_details ? JSON.parse(item.attendee_details) : null
+      answers: typeof item.answers === 'string' ? JSON.parse(item.answers) : item.answers,
+      section_scores: typeof item.section_scores === 'string' ? JSON.parse(item.section_scores) : item.section_scores,
+      attendee_details: item.attendee_details ? 
+        (typeof item.attendee_details === 'string' ? JSON.parse(item.attendee_details) : item.attendee_details) 
+        : null
     }));
   } catch (error) {
     console.error('Unexpected error fetching quiz history:', error);
