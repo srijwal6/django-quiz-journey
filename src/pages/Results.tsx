@@ -222,7 +222,7 @@ const Results = () => {
             <div className="glass-panel rounded-2xl p-8 mb-8">
               <h2 className="text-xl font-bold mb-4">Thank You!</h2>
               <p className="text-muted-foreground mb-4">
-                Your test details have been saved. You can view your results and past quiz attempts in your account.
+                Your test details have been saved. You will get an email regarding the test result soon.
               </p>
             </div>
           )}
