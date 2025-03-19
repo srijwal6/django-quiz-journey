@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 
 interface CodeEditorProps {
   question: Question;
-  onAnswer: (questionId: string, answer: string) => void;
+  onAnswer: (questionId: string, answer: string | number) => void;
   currentAnswer?: string;
   onNext: () => void;
   onPrevious: () => void;

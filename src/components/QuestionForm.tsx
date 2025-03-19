@@ -47,8 +47,8 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
     const option = newOptions[index];
     
     if (typeof option === 'string') {
-      // Handle string options (legacy format)
-      newOptions[index] = value;
+      // Convert string options to object format for compatibility
+      newOptions[index] = { id: String.fromCharCode(97 + index), text: value, isCorrect: false };
     } else {
       // Handle object options (new format)
       newOptions[index] = { ...option, text: value };

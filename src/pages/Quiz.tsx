@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
@@ -5,8 +6,19 @@ import ProgressBar from '@/components/ProgressBar';
 import QuizCard from '@/components/QuizCard';
 import CodeEditor from '@/components/CodeEditor';
 import AttendeeForm from '@/components/AttendeeForm';
-import { Question, QuizState, getQuizSetById } from '@/utils/quizData';
+import { Question, getQuizSetById } from '@/utils/quizData';
 import { useToast } from '@/hooks/use-toast';
+
+// Define the QuizState interface locally since it's not exported from quizData
+interface QuizState {
+  quizSetId: string | null;
+  currentSection: 'mcq' | 'coding' | 'debugging';
+  currentQuestionIndex: number;
+  answers: Record<string, any>;
+  score: number;
+  timeRemaining: number;
+  isCompleted: boolean;
+}
 
 const Quiz = () => {
   const navigate = useNavigate();
@@ -140,7 +152,7 @@ const Quiz = () => {
     });
   };
   
-  const handleAnswerSubmit = (questionId: number, answer: string | number) => {
+  const handleAnswerSubmit = (questionId: string, answer: string | number) => {
     setQuizState(prevState => ({
       ...prevState,
       answers: { ...prevState.answers, [questionId]: answer }
@@ -311,7 +323,7 @@ const Quiz = () => {
           <QuizCard 
             question={currentQuestion}
             onAnswer={handleAnswerSubmit}
-            selectedAnswer={quizState.answers[currentQuestion.id] as number}
+            selectedAnswer={quizState.answers[currentQuestion.id]}
             onNext={handleNextQuestion}
             onPrevious={handlePreviousQuestion}
             hasNext={quizState.currentQuestionIndex < currentQuestions.length - 1 || quizState.currentSection !== 'debugging'}

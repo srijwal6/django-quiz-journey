@@ -6,7 +6,7 @@ import { CheckCircle, Circle, ChevronRight, ChevronLeft } from 'lucide-react';
 
 interface QuizCardProps {
   question: Question;
-  onAnswer: (questionId: string, answer: string) => void;
+  onAnswer: (questionId: string, answer: string | number) => void;
   selectedAnswer?: string | number;
   onNext: () => void;
   onPrevious: () => void;
