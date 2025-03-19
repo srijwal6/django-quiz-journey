@@ -27,6 +27,10 @@ const Navbar: React.FC<NavbarProps> = ({ timeRemaining, isQuizActive }) => {
     
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
+
+  const handleLogout = async () => {
+    await logout();
+  };
   
   return (
     <header className="fixed top-0 left-0 right-0 z-50 glass-panel py-3 px-6 flex items-center justify-between animate-fade-in">
@@ -67,11 +71,11 @@ const Navbar: React.FC<NavbarProps> = ({ timeRemaining, isQuizActive }) => {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="flex items-center gap-2">
-                    <span>{user?.username}</span>
+                    <span>{user?.email}</span>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={logout} className="cursor-pointer">
+                  <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
                     <LogOut className="mr-2 h-4 w-4" />
                     <span>Logout</span>
                   </DropdownMenuItem>

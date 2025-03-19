@@ -13,7 +13,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Link } from "react-router-dom";
 
 const signupSchema = z.object({
-  username: z.string().min(3, "Username must be at least 3 characters"),
+  email: z.string().email("Please enter a valid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
   confirmPassword: z.string().min(6, "Confirm password must be at least 6 characters"),
 }).refine((data) => data.password === data.confirmPassword, {
@@ -31,25 +31,25 @@ const Signup = () => {
   const form = useForm<SignupFormValues>({
     resolver: zodResolver(signupSchema),
     defaultValues: {
-      username: "",
+      email: "",
       password: "",
       confirmPassword: "",
     },
   });
 
   const onSubmit = async (data: SignupFormValues) => {
-    const success = await signup(data.username, data.password);
+    const success = await signup(data.email, data.password);
     
     if (success) {
       toast({
         title: "Account Created",
-        description: `Welcome, ${data.username}!`,
+        description: "Welcome! Your account has been created successfully.",
       });
       navigate("/quizzes");
     } else {
       toast({
         title: "Signup Failed",
-        description: "Could not create account. Please try again.",
+        description: "Could not create account. This email might already be in use.",
         variant: "destructive",
       });
     }
@@ -67,12 +67,12 @@ const Signup = () => {
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
                 control={form.control}
-                name="username"
+                name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Username</FormLabel>
+                    <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input placeholder="Choose a username" {...field} />
+                      <Input placeholder="Enter your email" type="email" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
