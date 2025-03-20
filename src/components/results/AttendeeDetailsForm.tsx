@@ -42,6 +42,7 @@ const AttendeeDetailsForm: React.FC<AttendeeDetailsFormProps> = ({
     employeeId: '',
     jobTitle: '',
     phoneNumber: '',
+    email: '', // Added email field
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -110,6 +111,18 @@ const AttendeeDetailsForm: React.FC<AttendeeDetailsFormProps> = ({
               onChange={handleChange}
               placeholder="EMP123456"
               required
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              name="email"
+              type="email"
+              value={attendeeDetails.email}
+              onChange={handleChange}
+              placeholder="john.doe@example.com"
             />
           </div>
           
