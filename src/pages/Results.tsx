@@ -104,23 +104,32 @@ const Results = () => {
         return false;
       }
       
-      // Ensure we format the data properly to match EmailJS template variables
+      // Create detailed results message with proper formatting
+      const resultsMessage = `
+Quiz Results for ${details.fullName}
+
+Quiz Title: ${quizSet?.title || 'Assessment'}
+------------------------
+Score: ${score} out of ${totalMarks}
+Percentage: ${percentage}%
+Grade: ${gradeInfo.grade} - ${gradeInfo.label}
+Time Spent: ${formatTime(timeSpent)}
+
+Section Breakdown:
+- MCQ Section: ${sectionScores.mcq.score}/${sectionScores.mcq.total}
+- Coding Section: ${sectionScores.coding.score}/${sectionScores.coding.total}
+- Debugging Section: ${sectionScores.debugging.score}/${sectionScores.debugging.total}
+
+This is an automated email. Please do not reply.
+`;
+
+      // Create template parameters ensuring all needed variables are properly formatted
       const templateParams = {
         to_name: details.fullName,
         to_email: details.email,
         from_name: "Quiz Assessment System",
-        message: `
-          Quiz Title: ${quizSet?.title || 'Quiz'}
-          Score: ${score} out of ${totalMarks} (${percentage}%)
-          Grade: ${gradeInfo.grade} - ${gradeInfo.label}
-          Time Spent: ${formatTime(timeSpent)}
-          
-          Section Scores:
-          - MCQ Section: ${sectionScores.mcq.score}/${sectionScores.mcq.total}
-          - Coding Section: ${sectionScores.coding.score}/${sectionScores.coding.total}
-          - Debugging Section: ${sectionScores.debugging.score}/${sectionScores.debugging.total}
-        `,
-        quiz_title: quizSet?.title || 'Quiz',
+        message: resultsMessage,
+        quiz_title: quizSet?.title || 'Assessment',
         score: `${score}/${totalMarks}`,
         percentage: `${percentage}%`,
         grade: `${gradeInfo.grade} - ${gradeInfo.label}`,
@@ -128,7 +137,7 @@ const Results = () => {
         mcq_score: `${sectionScores.mcq.score}/${sectionScores.mcq.total}`,
         coding_score: `${sectionScores.coding.score}/${sectionScores.coding.total}`,
         debugging_score: `${sectionScores.debugging.score}/${sectionScores.debugging.total}`,
-        subject: `Your Quiz Results: ${quizSet?.title || 'Quiz Assessment'}`
+        subject: `Your Quiz Results: ${quizSet?.title || 'Assessment'}`
       };
       
       console.log('Sending email with params:', templateParams);
