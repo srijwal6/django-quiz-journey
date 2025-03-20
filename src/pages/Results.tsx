@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useLocation, Link, useParams } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
@@ -103,18 +104,31 @@ const Results = () => {
         return false;
       }
       
+      // Ensure we format the data properly to match EmailJS template variables
       const templateParams = {
         to_name: details.fullName,
-        to_email: details.email || 'Not provided',
+        to_email: details.email,
+        from_name: "Quiz Assessment System",
+        message: `
+          Quiz Title: ${quizSet?.title || 'Quiz'}
+          Score: ${score} out of ${totalMarks} (${percentage}%)
+          Grade: ${gradeInfo.grade} - ${gradeInfo.label}
+          Time Spent: ${formatTime(timeSpent)}
+          
+          Section Scores:
+          - MCQ Section: ${sectionScores.mcq.score}/${sectionScores.mcq.total}
+          - Coding Section: ${sectionScores.coding.score}/${sectionScores.coding.total}
+          - Debugging Section: ${sectionScores.debugging.score}/${sectionScores.debugging.total}
+        `,
         quiz_title: quizSet?.title || 'Quiz',
-        score: score,
-        total_marks: totalMarks,
-        percentage: percentage,
-        grade: gradeInfo.grade,
+        score: `${score}/${totalMarks}`,
+        percentage: `${percentage}%`,
+        grade: `${gradeInfo.grade} - ${gradeInfo.label}`,
         time_spent: formatTime(timeSpent),
         mcq_score: `${sectionScores.mcq.score}/${sectionScores.mcq.total}`,
         coding_score: `${sectionScores.coding.score}/${sectionScores.coding.total}`,
         debugging_score: `${sectionScores.debugging.score}/${sectionScores.debugging.total}`,
+        subject: `Your Quiz Results: ${quizSet?.title || 'Quiz Assessment'}`
       };
       
       console.log('Sending email with params:', templateParams);
