@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useLocation, Link, useParams } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
@@ -93,6 +92,68 @@ const Results = () => {
   const gradeInfo = getGrade(score, totalMarks);
   const percentage = Math.round((score / totalMarks) * 100) || 0;
   
+  const formatDetailedQuestionResponses = (questions, userAnswers) => {
+    if (!questions || !questions.length) return '';
+    
+    let detailedResponses = '';
+    questions.forEach((question, index) => {
+      const questionNumber = index + 1;
+      const userAnswer = userAnswers[question.id] || 'Not answered';
+      let correctAnswer = '';
+      let result = 'Incorrect';
+      let marks = `0/${question.marks || 0}`;
+      
+      if (question.type === 'mcq' && question.options) {
+        detailedResponses += `\nQuestion ${questionNumber}: ${question.text}\nOptions:\n`;
+        
+        // Add options
+        question.options.forEach((option, optIdx) => {
+          const optionLabel = String.fromCharCode(97 + optIdx); // a, b, c, d...
+          detailedResponses += `${optionLabel}) ${option.text}\n`;
+        });
+        
+        // Find correct answer
+        const correctOption = question.options.find(opt => opt.isCorrect);
+        if (correctOption) {
+          const correctIndex = question.options.indexOf(correctOption);
+          correctAnswer = `${String.fromCharCode(97 + correctIndex)}) ${correctOption.text}`;
+        }
+        
+        // Format user answer
+        let formattedUserAnswer = 'Not answered';
+        if (userAnswer !== 'Not answered') {
+          const selectedOption = question.options.find(opt => opt.id === userAnswer);
+          if (selectedOption) {
+            const selectedIndex = question.options.indexOf(selectedOption);
+            formattedUserAnswer = `${String.fromCharCode(97 + selectedIndex)}) ${selectedOption.text}`;
+          }
+        }
+        
+        // Calculate result
+        if (userAnswer === 'Not answered') {
+          result = 'Incorrect';
+          marks = `0/${question.marks || 0}`;
+        } else if (question.options.find(opt => opt.id === userAnswer)?.isCorrect) {
+          result = 'Correct';
+          marks = `${question.marks || 0}/${question.marks || 0}`;
+        }
+        
+        detailedResponses += `Candidate's Answer: ${formattedUserAnswer}\n`;
+        detailedResponses += `Correct Answer: ${correctAnswer}\n`;
+        detailedResponses += `Result: ${result}\n`;
+        detailedResponses += `Marks: ${marks}\n\n`;
+      } else if (question.type === 'coding' || question.type === 'debugging') {
+        detailedResponses += `\nQuestion ${questionNumber}: ${question.text}\n`;
+        detailedResponses += `Candidate's Answer: ${userAnswer !== 'Not answered' ? userAnswer : 'Not answered'}\n`;
+        detailedResponses += `Suggested Answer/Solution:\n${question.solution || 'Not provided'}\n`;
+        detailedResponses += `Result: ${result}\n`;
+        detailedResponses += `Marks: ${marks}\n\n`;
+      }
+    });
+    
+    return detailedResponses;
+  };
+  
   const sendResultEmail = async (details) => {
     try {
       const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID;
@@ -104,24 +165,21 @@ const Results = () => {
         return false;
       }
       
-      // Create detailed results message with proper formatting
-      const resultsMessage = `
-Quiz Results for ${details.fullName}
+      // Create detailed results message with the requested format
+      const candidateInfo = `=== CANDIDATE INFORMATION ===
+Name: ${details.fullName}
+Employee ID: ${details.employeeId}
+Job Title: ${details.jobTitle || 'Not provided'}
+Phone Number: ${details.phoneNumber || 'Not provided'}`;
 
-Quiz Title: ${quizSet?.title || 'Assessment'}
-------------------------
-Score: ${score} out of ${totalMarks}
-Percentage: ${percentage}%
-Grade: ${gradeInfo.grade} - ${gradeInfo.label}
-Time Spent: ${formatTime(timeSpent)}
+      const sectionBreakdown = `\n\n=== SECTION BREAKDOWN ===
+Multiple Choice: ${sectionScores.mcq.score}/${sectionScores.mcq.total}
+Coding Questions: ${sectionScores.coding.score}/${sectionScores.coding.total}
+Debugging Questions: ${sectionScores.debugging.score}/${sectionScores.debugging.total}`;
 
-Section Breakdown:
-- MCQ Section: ${sectionScores.mcq.score}/${sectionScores.mcq.total}
-- Coding Section: ${sectionScores.coding.score}/${sectionScores.coding.total}
-- Debugging Section: ${sectionScores.debugging.score}/${sectionScores.debugging.total}
+      const detailedResponses = `\n\n=== DETAILED RESPONSES ===\n${formatDetailedQuestionResponses(quizSet?.questions, answers)}`;
 
-This is an automated email. Please do not reply.
-`;
+      const resultsMessage = candidateInfo + sectionBreakdown + detailedResponses;
 
       // Create template parameters ensuring all needed variables are properly formatted
       const templateParams = {
