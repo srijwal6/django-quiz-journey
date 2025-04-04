@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -13,6 +12,7 @@ export interface Question {
   correctAnswer?: string | number;
   section: string;
   marks: number;
+  solution?: string;
 }
 
 export interface QuizSet {
@@ -41,8 +41,210 @@ export interface QuizState {
   isCompleted: boolean;
 }
 
-// Sample quiz data (as fallback if DB fetch fails)
 const mockQuizSets: QuizSet[] = [
+  {
+    id: 'golang-quiz-set-1',
+    title: 'Golang Technical Test - Set 1',
+    description: 'Test your knowledge of Go programming language basics, goroutines, and standard libraries',
+    totalMarks: 100,
+    timeLimit: 10800, // 3 hours
+    questions: [
+      {
+        id: '1',
+        type: 'multiple-choice',
+        text: 'What is the default type of an untyped constant in Go?',
+        questionText: 'What is the default type of an untyped constant in Go?',
+        options: [
+          { id: 'a', text: 'string', isCorrect: false },
+          { id: 'b', text: 'int', isCorrect: false },
+          { id: 'c', text: 'float64', isCorrect: true },
+          { id: 'd', text: 'bool', isCorrect: false },
+        ],
+        section: 'mcq',
+        marks: 2,
+      },
+      {
+        id: '2',
+        type: 'multiple-choice',
+        text: 'How can you create a new Goroutine in Go?',
+        questionText: 'How can you create a new Goroutine in Go?',
+        options: [
+          { id: 'a', text: 'Using go keyword before a function call', isCorrect: true },
+          { id: 'b', text: 'By using newGoroutine() function', isCorrect: false },
+          { id: 'c', text: 'By declaring a thread manually', isCorrect: false },
+          { id: 'd', text: 'None of the above', isCorrect: false },
+        ],
+        section: 'mcq',
+        marks: 2,
+      },
+      {
+        id: '3',
+        type: 'multiple-choice',
+        text: 'Which package is used to handle HTTP requests in Go?',
+        questionText: 'Which package is used to handle HTTP requests in Go?',
+        options: [
+          { id: 'a', text: 'http', isCorrect: false },
+          { id: 'b', text: 'net/http', isCorrect: true },
+          { id: 'c', text: 'web/http', isCorrect: false },
+          { id: 'd', text: 'http/server', isCorrect: false },
+        ],
+        section: 'mcq',
+        marks: 2,
+      },
+      {
+        id: '4',
+        type: 'multiple-choice',
+        text: 'What does the recover function do in Go?',
+        questionText: 'What does the recover function do in Go?',
+        options: [
+          { id: 'a', text: 'Stops a Goroutine', isCorrect: false },
+          { id: 'b', text: 'Recovers from a panic', isCorrect: true },
+          { id: 'c', text: 'Restarts the application', isCorrect: false },
+          { id: 'd', text: 'None of the above', isCorrect: false },
+        ],
+        section: 'mcq',
+        marks: 2,
+      },
+      {
+        id: '5',
+        type: 'multiple-choice',
+        text: 'How do you define a struct in Go?',
+        questionText: 'How do you define a struct in Go?',
+        options: [
+          { id: 'a', text: 'Using type StructName struct {}', isCorrect: true },
+          { id: 'b', text: 'Using struct StructName {}', isCorrect: false },
+          { id: 'c', text: 'Using class StructName {}', isCorrect: false },
+          { id: 'd', text: 'Using define StructName struct {}', isCorrect: false },
+        ],
+        section: 'mcq',
+        marks: 2,
+      },
+      {
+        id: '6',
+        type: 'multiple-choice',
+        text: 'How do you create a slice in Go?',
+        questionText: 'How do you create a slice in Go?',
+        options: [
+          { id: 'a', text: 'Using []type{}', isCorrect: false },
+          { id: 'b', text: 'Using make([]type, length, capacity)', isCorrect: false },
+          { id: 'c', text: 'Both a and b', isCorrect: true },
+          { id: 'd', text: 'None of the above', isCorrect: false },
+        ],
+        section: 'mcq',
+        marks: 2,
+      },
+      {
+        id: '7',
+        type: 'multiple-choice',
+        text: 'Which of the following statements about interfaces in Go is true?',
+        questionText: 'Which of the following statements about interfaces in Go is true?',
+        options: [
+          { id: 'a', text: 'Interfaces can have fields', isCorrect: false },
+          { id: 'b', text: 'Interfaces define method sets', isCorrect: true },
+          { id: 'c', text: 'Interfaces support inheritance', isCorrect: false },
+          { id: 'd', text: 'Interfaces cannot be used with structs', isCorrect: false },
+        ],
+        section: 'mcq',
+        marks: 2,
+      },
+      {
+        id: '8',
+        type: 'multiple-choice',
+        text: 'What does defer do in Go?',
+        questionText: 'What does defer do in Go?',
+        options: [
+          { id: 'a', text: 'Executes a function before exiting a block', isCorrect: false },
+          { id: 'b', text: 'Executes a function at the end of the surrounding function', isCorrect: true },
+          { id: 'c', text: 'Pauses the execution of a function', isCorrect: false },
+          { id: 'd', text: 'None of the above', isCorrect: false },
+        ],
+        section: 'mcq',
+        marks: 2,
+      },
+      {
+        id: '9',
+        type: 'multiple-choice',
+        text: 'Which function is used to format strings in Go?',
+        questionText: 'Which function is used to format strings in Go?',
+        options: [
+          { id: 'a', text: 'fmt.Printf()', isCorrect: true },
+          { id: 'b', text: 'fmt.Scan()', isCorrect: false },
+          { id: 'c', text: 'fmt.Write()', isCorrect: false },
+          { id: 'd', text: 'fmt.Parse()', isCorrect: false },
+        ],
+        section: 'mcq',
+        marks: 2,
+      },
+      {
+        id: '10',
+        type: 'multiple-choice',
+        text: 'How can you create an infinite loop in Go?',
+        questionText: 'How can you create an infinite loop in Go?',
+        options: [
+          { id: 'a', text: 'Using for true {}', isCorrect: false },
+          { id: 'b', text: 'Using while(true) {}', isCorrect: false },
+          { id: 'c', text: 'Using for {}', isCorrect: false },
+          { id: 'd', text: 'Both a and c', isCorrect: true },
+        ],
+        section: 'mcq',
+        marks: 2,
+      },
+      
+      {
+        id: '11',
+        type: 'coding',
+        text: 'Write a function to find the factorial of a number using recursion.',
+        questionText: 'Write a function to find the factorial of a number using recursion.',
+        codeSnippet: 'package main\n\nimport (\n\t"fmt"\n)\n\n// Implement the factorial function here\nfunc factorial(n int) int {\n\t// Your code here\n}\n\nfunc main() {\n\tfmt.Println(factorial(5)) // Should print 120\n}',
+        correctAnswer: 'package main\n\nimport (\n\t"fmt"\n)\n\nfunc factorial(n int) int {\n\tif n <= 1 {\n\t\treturn 1\n\t}\n\treturn n * factorial(n-1)\n}\n\nfunc main() {\n\tfmt.Println(factorial(5)) // Should print 120\n}',
+        section: 'coding',
+        marks: 10,
+      },
+      {
+        id: '12',
+        type: 'coding',
+        text: 'Create an HTTP server in Go that responds with "Hello, World!" when accessed at /hello.',
+        questionText: 'Create an HTTP server in Go that responds with "Hello, World!" when accessed at /hello.',
+        codeSnippet: 'package main\n\nimport (\n\t// Import the required packages\n)\n\nfunc main() {\n\t// Implement the HTTP server here\n}',
+        correctAnswer: 'package main\n\nimport (\n\t"fmt"\n\t"net/http"\n)\n\nfunc helloHandler(w http.ResponseWriter, r *http.Request) {\n\tfmt.Fprintf(w, "Hello, World!")\n}\n\nfunc main() {\n\thttp.HandleFunc("/hello", helloHandler)\n\tfmt.Println("Server started at http://localhost:8080")\n\thttp.ListenAndServe(":8080", nil)\n}',
+        section: 'coding',
+        marks: 20,
+      },
+      {
+        id: '13',
+        type: 'coding',
+        text: 'Implement a Goroutine-based program that calculates the sum of an array in parallel using channels.',
+        questionText: 'Implement a Goroutine-based program that calculates the sum of an array in parallel using channels.',
+        codeSnippet: 'package main\n\nimport (\n\t"fmt"\n)\n\n// Implement the parallel sum function using Goroutines and channels\nfunc parallelSum(numbers []int) int {\n\t// Your code here\n}\n\nfunc main() {\n\tnumbers := []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}\n\tsum := parallelSum(numbers)\n\tfmt.Println("Sum:", sum) // Should print 55\n}',
+        correctAnswer: 'package main\n\nimport (\n\t"fmt"\n\t"sync"\n)\n\nfunc parallelSum(numbers []int) int {\n\tch := make(chan int)\n\twg := sync.WaitGroup{}\n\n\t// Split the numbers into 2 chunks\n\tmid := len(numbers) / 2\n\n\t// Calculate sum of first half\n\twg.Add(1)\n\tgo func() {\n\t\tdefer wg.Done()\n\t\tsum := 0\n\t\tfor _, num := range numbers[:mid] {\n\t\t\tsum += num\n\t\t}\n\t\tch <- sum\n\t}()\n\n\t// Calculate sum of second half\n\twg.Add(1)\n\tgo func() {\n\t\tdefer wg.Done()\n\t\tsum := 0\n\t\tfor _, num := range numbers[mid:] {\n\t\t\tsum += num\n\t\t}\n\t\tch <- sum\n\t}()\n\n\t// Wait for goroutines to finish\n\tgo func() {\n\t\twg.Wait()\n\t\tclose(ch)\n\t}()\n\n\t// Get results from channel\n\ttotalSum := 0\n\tfor sum := range ch {\n\t\ttotalSum += sum\n\t}\n\n\treturn totalSum\n}',
+        section: 'coding',
+        marks: 20,
+      },
+      
+      {
+        id: '14',
+        type: 'debugging',
+        text: 'Fix the following Go program that does not compile.',
+        questionText: 'Fix the following Go program that does not compile.',
+        codeSnippet: 'package main\n\nimport "fmt"\n\nfunc main() {\n    var nums = []int{1, 2, 3, 4, 5}\n    for i := range nums {\n        fmt.Println(i, nums(i))\n    }\n}',
+        correctAnswer: 'package main\n\nimport "fmt"\n\nfunc main() {\n    var nums = []int{1, 2, 3, 4, 5}\n    for i := range nums {\n        fmt.Println(i, nums[i])\n    }\n}',
+        solution: 'The issue is with accessing array elements. In Go, you use square brackets [] to access array/slice elements, not parentheses (). Changed nums(i) to nums[i].',
+        section: 'debugging',
+        marks: 15,
+      },
+      {
+        id: '15',
+        type: 'debugging',
+        text: 'Optimize the following Go program for better performance using Goroutines.',
+        questionText: 'Optimize the following Go program for better performance using Goroutines.',
+        codeSnippet: 'package main\n\nimport (\n    "fmt"\n    "time"\n)\n\nfunc work(id int) {\n    time.Sleep(1 * time.Second)\n    fmt.Println("Worker", id, "done")\n}\n\nfunc main() {\n    for i := 1; i <= 5; i++ {\n        go work(i)\n    }\n    time.Sleep(3 * time.Second)\n}',
+        correctAnswer: 'package main\n\nimport (\n    "fmt"\n    "sync"\n    "time"\n)\n\nfunc work(id int, wg *sync.WaitGroup) {\n    defer wg.Done()\n    time.Sleep(1 * time.Second)\n    fmt.Println("Worker", id, "done")\n}\n\nfunc main() {\n    var wg sync.WaitGroup\n    \n    for i := 1; i <= 5; i++ {\n        wg.Add(1)\n        go work(i, &wg)\n    }\n    \n    wg.Wait()\n    fmt.Println("All workers completed")\n}',
+        solution: 'The optimization uses a WaitGroup instead of a fixed sleep time, which ensures all goroutines complete before the program exits, regardless of how long they take. This makes the code more reliable and potentially faster as it won\'t wait unnecessarily.',
+        section: 'debugging',
+        marks: 15,
+      },
+    ],
+  },
   {
     id: 'django-quiz-set-1',
     title: 'Django Quiz Set 1',
@@ -50,7 +252,6 @@ const mockQuizSets: QuizSet[] = [
     totalMarks: 100,
     timeLimit: 10800, // 3 hours
     questions: [
-      // Section 1: MCQs (10 questions, 20 marks)
       {
         id: '1',
         type: 'multiple-choice',
@@ -192,7 +393,6 @@ const mockQuizSets: QuizSet[] = [
         marks: 2,
       },
       
-      // Section 2: Coding Questions (3 questions, 50 marks)
       {
         id: '11',
         type: 'coding',
@@ -227,7 +427,6 @@ const mockQuizSets: QuizSet[] = [
         marks: 20,
       },
       
-      // Section 3: Debugging Questions (2 questions, 30 marks)
       {
         id: '14',
         type: 'debugging',
@@ -259,7 +458,6 @@ const mockQuizSets: QuizSet[] = [
     totalMarks: 100,
     timeLimit: 10800, // 3 hours
     questions: [
-      // Section 1: MCQs (10 questions, 20 marks)
       {
         id: '1',
         type: 'multiple-choice',
@@ -401,7 +599,6 @@ const mockQuizSets: QuizSet[] = [
         marks: 2,
       },
       
-      // Section 2: Coding Questions (3 questions, 50 marks)
       {
         id: '11',
         type: 'coding',
@@ -436,7 +633,6 @@ const mockQuizSets: QuizSet[] = [
         marks: 20,
       },
       
-      // Section 3: Debugging Questions (2 questions, 30 marks)
       {
         id: '14',
         type: 'debugging',
@@ -461,10 +657,8 @@ const mockQuizSets: QuizSet[] = [
       },
     ],
   },
-  // ... keep existing code (all other quiz sets)
 ];
 
-// Function to save a new quiz set to Supabase
 export const saveQuizSet = async (quizSet: QuizSet): Promise<string | null> => {
   try {
     const { data: userData, error: userError } = await supabase.auth.getUser();
@@ -477,7 +671,6 @@ export const saveQuizSet = async (quizSet: QuizSet): Promise<string | null> => {
     const userId = userData.user.id;
     const quizSetId = quizSet.id || uuidv4();
     
-    // We need to stringify the questions array to store it as JSONB
     const { data, error } = await supabase
       .from('custom_quiz_sets')
       .insert({
@@ -487,7 +680,7 @@ export const saveQuizSet = async (quizSet: QuizSet): Promise<string | null> => {
         description: quizSet.description,
         total_marks: quizSet.totalMarks,
         time_limit: quizSet.timeLimit,
-        questions: JSON.stringify(quizSet.questions) // Convert to JSON string before inserting
+        questions: JSON.stringify(quizSet.questions)
       });
     
     if (error) {
@@ -502,23 +695,19 @@ export const saveQuizSet = async (quizSet: QuizSet): Promise<string | null> => {
   }
 };
 
-// Adding this as an alias for saveQuizSet for backward compatibility
 export const addQuizSet = saveQuizSet;
 
-// Function to fetch all quiz sets from Supabase and mock data
 export const fetchQuizSets = async (): Promise<QuizSet[]> => {
   try {
-    // Fetch custom quiz sets from Supabase
     const { data: customSets, error } = await supabase
       .from('custom_quiz_sets')
       .select('*');
     
     if (error) {
       console.error('Error fetching custom quiz sets:', error);
-      return mockQuizSets; // Fallback to mock data
+      return mockQuizSets;
     }
     
-    // Transform the data from Supabase format to our app's format
     const transformedCustomSets: QuizSet[] = customSets.map(set => ({
       id: set.quiz_set_id,
       title: set.title,
@@ -526,22 +715,19 @@ export const fetchQuizSets = async (): Promise<QuizSet[]> => {
       totalMarks: set.total_marks,
       timeLimit: set.time_limit,
       questions: typeof set.questions === 'string' 
-        ? JSON.parse(set.questions) 
-        : set.questions // Parse the JSON string back to an array
+        ? JSON.parse(set.questions)
+        : set.questions
     }));
     
-    // Combine with mock data
     return [...transformedCustomSets, ...mockQuizSets];
   } catch (error) {
     console.error('Unexpected error fetching quiz sets:', error);
-    return mockQuizSets; // Fallback to mock data
+    return mockQuizSets;
   }
 };
 
-// Function to get a specific quiz set by ID
 export const getQuizSetById = async (id: string): Promise<QuizSet | null> => {
   try {
-    // First check if it's a custom quiz set
     const { data: customSet, error } = await supabase
       .from('custom_quiz_sets')
       .select('*')
@@ -557,22 +743,19 @@ export const getQuizSetById = async (id: string): Promise<QuizSet | null> => {
         timeLimit: customSet.time_limit,
         questions: typeof customSet.questions === 'string' 
           ? JSON.parse(customSet.questions)
-          : customSet.questions // Parse the JSON string back to an array
+          : customSet.questions
       };
     }
     
-    // If not found in database, check mock data
     const mockSet = mockQuizSets.find(set => set.id === id);
     return mockSet || null;
   } catch (error) {
     console.error('Error fetching quiz set:', error);
-    // Check mock data as fallback
     const mockSet = mockQuizSets.find(set => set.id === id);
     return mockSet || null;
   }
 };
 
-// Function to save quiz results to Supabase
 export const saveQuizResults = async (
   quizSetId: string,
   score: number,
@@ -617,15 +800,12 @@ export const saveQuizResults = async (
   }
 };
 
-// Adding this as an alias for saveQuizResults for backward compatibility
 export const saveQuizResult = saveQuizResults;
 
-// Function to calculate section scores
 export const calculateSectionScores = (
   questions: Question[],
   answers: Record<string, any>
 ): SectionScore[] => {
-  // Group questions by section
   const sections: Record<string, Question[]> = {};
   
   questions.forEach(q => {
@@ -635,7 +815,6 @@ export const calculateSectionScores = (
     sections[q.section].push(q);
   });
   
-  // Calculate scores for each section
   const sectionScores: SectionScore[] = [];
   
   Object.entries(sections).forEach(([section, questions]) => {
@@ -656,7 +835,11 @@ export const calculateSectionScores = (
           sectionScore += q.marks;
         }
       }
-      // For coding questions, we don't auto-grade
+      if (q.type === 'coding' && q.correctAnswer) {
+        if (answer && answer === q.correctAnswer) {
+          sectionScore += q.marks;
+        }
+      }
     });
     
     const percentage = (sectionTotalMarks > 0) 
@@ -674,7 +857,6 @@ export const calculateSectionScores = (
   return sectionScores;
 };
 
-// Simple function to calculate score from answers
 export const calculateScore = (answers: Record<string, any>, questions: Question[]): number => {
   let totalScore = 0;
   
@@ -692,18 +874,20 @@ export const calculateScore = (answers: Record<string, any>, questions: Question
         totalScore += q.marks;
       }
     }
-    // For coding questions, we don't auto-grade
+    if (q.type === 'coding' && q.correctAnswer) {
+      if (answer && answer === q.correctAnswer) {
+        totalScore += q.marks;
+      }
+    }
   });
   
   return totalScore;
 };
 
-// Helper function to get questions for a specific section
 export const getQuestionsForSection = (questions: Question[], section: string): Question[] => {
   return questions.filter(q => q.section === section);
 };
 
-// Function to fetch quiz history for current user
 export const fetchQuizHistory = async (): Promise<any[]> => {
   try {
     const { data: userData, error: userError } = await supabase.auth.getUser();
@@ -723,7 +907,6 @@ export const fetchQuizHistory = async (): Promise<any[]> => {
       return [];
     }
     
-    // Parse JSON fields
     return data.map(item => ({
       ...item,
       answers: typeof item.answers === 'string' ? JSON.parse(item.answers) : item.answers,
