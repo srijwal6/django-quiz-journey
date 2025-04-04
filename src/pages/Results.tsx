@@ -99,53 +99,78 @@ const Results = () => {
     questions.forEach((question, index) => {
       const questionNumber = index + 1;
       const userAnswer = userAnswers[question.id] || 'Not answered';
-      let correctAnswer = '';
-      let result = 'Incorrect';
-      let marks = `0/${question.marks || 0}`;
       
-      if (question.type === 'mcq' && question.options) {
+      if (question.type === 'mcq' || question.section === 'mcq') {
         detailedResponses += `\nQuestion ${questionNumber}: ${question.text}\nOptions:\n`;
         
-        // Add options
-        question.options.forEach((option, optIdx) => {
-          const optionLabel = String.fromCharCode(97 + optIdx); // a, b, c, d...
-          detailedResponses += `${optionLabel}) ${option.text}\n`;
-        });
+        // Add all options
+        if (question.options && Array.isArray(question.options)) {
+          question.options.forEach((option, optIdx) => {
+            const optionLabel = String.fromCharCode(97 + optIdx); // a, b, c, d...
+            const optionText = typeof option === 'object' ? option.text : option;
+            detailedResponses += `${optionLabel}) ${optionText}\n`;
+          });
+        }
         
         // Find correct answer
-        const correctOption = question.options.find(opt => opt.isCorrect);
-        if (correctOption) {
-          const correctIndex = question.options.indexOf(correctOption);
-          correctAnswer = `${String.fromCharCode(97 + correctIndex)}) ${correctOption.text}`;
+        let correctAnswer = 'Not available';
+        if (question.options && Array.isArray(question.options)) {
+          const correctOption = question.options.find(opt => 
+            (typeof opt === 'object' && opt.isCorrect)
+          );
+          
+          if (correctOption) {
+            const correctIndex = question.options.indexOf(correctOption);
+            correctAnswer = `${String.fromCharCode(97 + correctIndex)}) ${typeof correctOption === 'object' ? correctOption.text : correctOption}`;
+          }
         }
         
         // Format user answer
         let formattedUserAnswer = 'Not answered';
-        if (userAnswer !== 'Not answered') {
-          const selectedOption = question.options.find(opt => opt.id === userAnswer);
+        if (userAnswer !== 'Not answered' && question.options) {
+          const selectedOption = question.options.find(opt => 
+            (typeof opt === 'object' && opt.id === userAnswer)
+          );
+          
           if (selectedOption) {
             const selectedIndex = question.options.indexOf(selectedOption);
-            formattedUserAnswer = `${String.fromCharCode(97 + selectedIndex)}) ${selectedOption.text}`;
+            formattedUserAnswer = `${String.fromCharCode(97 + selectedIndex)}) ${typeof selectedOption === 'object' ? selectedOption.text : selectedOption}`;
           }
         }
         
         // Calculate result
+        let result = 'Incorrect';
+        let marks = `0/${question.marks || 0}`;
+        
         if (userAnswer === 'Not answered') {
           result = 'Incorrect';
           marks = `0/${question.marks || 0}`;
-        } else if (question.options.find(opt => opt.id === userAnswer)?.isCorrect) {
-          result = 'Correct';
-          marks = `${question.marks || 0}/${question.marks || 0}`;
+        } else {
+          const correctOption = question.options.find(opt => 
+            (typeof opt === 'object' && opt.isCorrect)
+          );
+          
+          if (correctOption && correctOption.id === userAnswer) {
+            result = 'Correct';
+            marks = `${question.marks || 0}/${question.marks || 0}`;
+          }
         }
         
         detailedResponses += `Candidate's Answer: ${formattedUserAnswer}\n`;
         detailedResponses += `Correct Answer: ${correctAnswer}\n`;
         detailedResponses += `Result: ${result}\n`;
         detailedResponses += `Marks: ${marks}\n\n`;
-      } else if (question.type === 'coding' || question.type === 'debugging') {
+      } else if (question.type === 'coding' || question.section === 'coding' || 
+                 question.type === 'debugging' || question.section === 'debugging') {
         detailedResponses += `\nQuestion ${questionNumber}: ${question.text}\n`;
         detailedResponses += `Candidate's Answer: ${userAnswer !== 'Not answered' ? userAnswer : 'Not answered'}\n`;
         detailedResponses += `Suggested Answer/Solution:\n${question.solution || 'Not provided'}\n`;
+        
+        // For coding/debugging questions, we need to determine if it was correct manually
+        let result = 'Incorrect';
+        let marks = `0/${question.marks || 0}`;
+        
+        // For now, we'll show as incorrect as these typically need manual grading
         detailedResponses += `Result: ${result}\n`;
         detailedResponses += `Marks: ${marks}\n\n`;
       }
