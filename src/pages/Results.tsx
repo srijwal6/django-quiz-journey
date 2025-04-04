@@ -101,7 +101,8 @@ const Results = () => {
       const userAnswer = userAnswers[question.id] || 'Not answered';
       
       if (question.type === 'mcq' || question.section === 'mcq') {
-        detailedResponses += `\nQuestion ${questionNumber}: ${question.text}\nOptions:\n`;
+        detailedResponses += `\nQuestion ${questionNumber}: ${question.text}\n`;
+        detailedResponses += `Options:\n`;
         
         // Add all options
         if (question.options && Array.isArray(question.options)) {
@@ -142,10 +143,7 @@ const Results = () => {
         let result = 'Incorrect';
         let marks = `0/${question.marks || 0}`;
         
-        if (userAnswer === 'Not answered') {
-          result = 'Incorrect';
-          marks = `0/${question.marks || 0}`;
-        } else {
+        if (userAnswer !== 'Not answered') {
           const correctOption = question.options.find(opt => 
             (typeof opt === 'object' && opt.isCorrect)
           );
