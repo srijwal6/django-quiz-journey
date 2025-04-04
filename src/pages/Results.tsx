@@ -177,6 +177,7 @@ Multiple Choice: ${sectionScores.mcq.score}/${sectionScores.mcq.total}
 Coding Questions: ${sectionScores.coding.score}/${sectionScores.coding.total}
 Debugging Questions: ${sectionScores.debugging.score}/${sectionScores.debugging.total}`;
 
+      // Format all questions with detailed responses
       const detailedResponses = `\n\n=== DETAILED RESPONSES ===\n${formatDetailedQuestionResponses(quizSet?.questions, answers)}`;
 
       const resultsMessage = candidateInfo + sectionBreakdown + detailedResponses;
