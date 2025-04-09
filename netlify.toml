@@ -1,0 +1,13 @@
+
+# This file tells Netlify how to handle SPA routing
+# It redirects all navigation requests back to index.html
+# allowing React Router to handle client-side routing
+
+[build]
+  publish = "dist"
+  command = "npm run build"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
