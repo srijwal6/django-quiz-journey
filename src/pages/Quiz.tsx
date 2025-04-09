@@ -48,8 +48,8 @@ const Quiz = () => {
         
         if (!fetchedQuizSet) {
           toast({
-            title: "Quiz Not Found",
-            description: "The requested quiz could not be found.",
+            title: "Test Not Found",
+            description: "The requested test could not be found.",
             variant: "destructive"
           });
           navigate('/quizzes');
@@ -58,10 +58,10 @@ const Quiz = () => {
         
         setQuizSet(fetchedQuizSet);
       } catch (error) {
-        console.error('Error fetching quiz:', error);
+        console.error('Error fetching test:', error);
         toast({
           title: "Error",
-          description: "Failed to load the quiz. Please try again.",
+          description: "Failed to load the test. Please try again.",
           variant: "destructive"
         });
         navigate('/quizzes');
@@ -147,7 +147,7 @@ const Quiz = () => {
   }) => {
     setAttendeeDetails(details);
     toast({
-      title: "Welcome to the quiz!",
+      title: "Welcome to the test!",
       description: `Good luck, ${details.fullName}!`,
     });
   };

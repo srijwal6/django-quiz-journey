@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useLocation, Link, useParams } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
@@ -209,7 +210,7 @@ Debugging Questions: ${sectionScores.debugging.score}/${sectionScores.debugging.
       const templateParams = {
         to_name: details.fullName,
         to_email: details.email,
-        from_name: "Quiz Assessment System",
+        from_name: "Test Assessment System",
         message: resultsMessage,
         quiz_title: quizSet?.title || 'Assessment',
         score: `${score}/${totalMarks}`,
@@ -219,7 +220,7 @@ Debugging Questions: ${sectionScores.debugging.score}/${sectionScores.debugging.
         mcq_score: `${sectionScores.mcq.score}/${sectionScores.mcq.total}`,
         coding_score: `${sectionScores.coding.score}/${sectionScores.coding.total}`,
         debugging_score: `${sectionScores.debugging.score}/${sectionScores.debugging.total}`,
-        subject: `Your Quiz Results: ${quizSet?.title || 'Assessment'}`
+        subject: `Your Test Results: ${quizSet?.title || 'Assessment'}`
       };
       
       console.log('Sending email with params:', templateParams);
@@ -393,7 +394,7 @@ Debugging Questions: ${sectionScores.debugging.score}/${sectionScores.debugging.
               to="/quizzes"
               className="bg-secondary text-foreground px-4 py-2 rounded-lg hover:bg-secondary/80 transition-colors"
             >
-              Back to Test
+              Back to Tests
             </Link>
             
             <Link 

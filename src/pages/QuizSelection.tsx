@@ -22,10 +22,10 @@ const QuizSelection = () => {
         const sets = await fetchQuizSets();
         setQuizSets(sets);
       } catch (error) {
-        console.error('Error loading quiz sets:', error);
+        console.error('Error loading test sets:', error);
         toast({
           title: 'Error',
-          description: 'Failed to load quiz sets',
+          description: 'Failed to load test sets',
           variant: 'destructive'
         });
       } finally {
@@ -54,7 +54,7 @@ const QuizSelection = () => {
       <main className="pt-20 px-4 max-w-6xl mx-auto">
         <div className="flex justify-between items-center my-10">
           <div>
-            <h1 className="text-3xl font-bold mb-2">Select a Quiz</h1>
+            <h1 className="text-3xl font-bold mb-2">Select a Test</h1>
             <p className="text-muted-foreground">
               Choose from one of our technical tests to assess your skills
             </p>
@@ -66,7 +66,7 @@ const QuizSelection = () => {
               className="flex items-center gap-2"
             >
               <Plus className="h-4 w-4" />
-              Add New Quiz
+              Add New Test
             </Button>
           )}
         </div>
@@ -77,7 +77,7 @@ const QuizSelection = () => {
           </div>
         ) : quizSets.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-muted-foreground">No quiz sets available</p>
+            <p className="text-muted-foreground">No test sets available</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-16">

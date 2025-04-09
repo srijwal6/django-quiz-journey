@@ -66,7 +66,7 @@ const Navbar: React.FC<NavbarProps> = ({ timeRemaining, isQuizActive }) => {
                 to="/quizzes" 
                 className={`text-sm transition-colors hover:text-primary ${location.pathname === '/quizzes' ? 'text-primary font-medium' : 'text-muted-foreground'}`}
               >
-                Quizzes
+                Tests
               </Link>
               
               <DropdownMenu>

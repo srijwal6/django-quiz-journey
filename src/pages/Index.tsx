@@ -26,7 +26,7 @@ const Index = () => {
               <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center mb-4">
                 <CheckCircle className="h-6 w-6 text-blue-600" />
               </div>
-              <h3 className="text-xl font-medium mb-2">Multiple Quiz Sets</h3>
+              <h3 className="text-xl font-medium mb-2">Multiple Test Sets</h3>
               <p className="text-muted-foreground">
                 Choose from a variety of technical tests covering different aspects of development.
               </p>
