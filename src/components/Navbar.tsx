@@ -35,11 +35,12 @@ const Navbar: React.FC<NavbarProps> = ({ timeRemaining, isQuizActive }) => {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 glass-panel py-3 px-6 flex items-center justify-between animate-fade-in">
       <div className="flex items-center gap-2">
-        <div className="h-8 w-8 bg-primary rounded-lg flex items-center justify-center">
-          <span className="text-white font-bold text-sm">TC</span>
-        </div>
-        <Link to="/" className="text-lg font-medium transition hover:opacity-80">
-          Tegain Certification Test
+        <Link to="/" className="flex items-center transition hover:opacity-80">
+          <img 
+            src="/lovable-uploads/85fdeaa9-6459-4442-a5f3-54e5b815c2d1.png" 
+            alt="Tegain Logo" 
+            className="h-10" 
+          />
         </Link>
       </div>
       
