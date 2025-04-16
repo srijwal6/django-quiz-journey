@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useLocation, Link, useParams } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
@@ -37,6 +36,7 @@ const Results = () => {
   const [submitting, setSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
   const [emailSent, setEmailSent] = useState(false);
+  const [formattedResults, setFormattedResults] = useState('');
   
   useEffect(() => {
     const fetchQuizSet = async () => {
@@ -105,16 +105,14 @@ const Results = () => {
         detailedResponses += `\nQuestion ${questionNumber}: ${question.text}\n`;
         detailedResponses += `Options:\n`;
         
-        // Add all options
         if (question.options && Array.isArray(question.options)) {
           question.options.forEach((option, optIdx) => {
-            const optionLabel = String.fromCharCode(97 + optIdx); // a, b, c, d...
+            const optionLabel = String.fromCharCode(97 + optIdx);
             const optionText = typeof option === 'object' ? option.text : option;
             detailedResponses += `${optionLabel}) ${optionText}\n`;
           });
         }
         
-        // Find correct answer
         let correctAnswer = 'Not available';
         if (question.options && Array.isArray(question.options)) {
           const correctOption = question.options.find(opt => 
@@ -127,7 +125,6 @@ const Results = () => {
           }
         }
         
-        // Format user answer
         let formattedUserAnswer = 'Not answered';
         if (userAnswer !== 'Not answered' && question.options) {
           const selectedOption = question.options.find(opt => 
@@ -140,7 +137,6 @@ const Results = () => {
           }
         }
         
-        // Calculate result
         let result = 'Incorrect';
         let marks = `0/${question.marks || 0}`;
         
@@ -165,11 +161,9 @@ const Results = () => {
         detailedResponses += `Candidate's Answer: ${userAnswer !== 'Not answered' ? userAnswer : 'Not answered'}\n`;
         detailedResponses += `Suggested Answer/Solution:\n${question.solution || 'Not provided'}\n`;
         
-        // For coding/debugging questions, we need to determine if it was correct manually
         let result = 'Incorrect';
         let marks = `0/${question.marks || 0}`;
         
-        // For now, we'll show as incorrect as these typically need manual grading
         detailedResponses += `Result: ${result}\n`;
         detailedResponses += `Marks: ${marks}\n\n`;
       }
@@ -189,7 +183,6 @@ const Results = () => {
         return false;
       }
       
-      // Create detailed results message with the requested format
       const candidateInfo = `=== CANDIDATE INFORMATION ===
 Name: ${details.fullName}
 Employee ID: ${details.employeeId}
@@ -201,12 +194,12 @@ Multiple Choice: ${sectionScores.mcq.score}/${sectionScores.mcq.total}
 Coding Questions: ${sectionScores.coding.score}/${sectionScores.coding.total}
 Debugging Questions: ${sectionScores.debugging.score}/${sectionScores.debugging.total}`;
 
-      // Format all questions with detailed responses
       const detailedResponses = `\n\n=== DETAILED RESPONSES ===\n${formatDetailedQuestionResponses(quizSet?.questions, answers)}`;
 
       const resultsMessage = candidateInfo + sectionBreakdown + detailedResponses;
+      
+      setFormattedResults(resultsMessage);
 
-      // Create template parameters ensuring all needed variables are properly formatted
       const templateParams = {
         to_name: details.fullName,
         to_email: details.email,
@@ -249,7 +242,7 @@ Debugging Questions: ${sectionScores.debugging.score}/${sectionScores.debugging.
     try {
       const updatedDetails = {
         ...details,
-        email: details.email || `${details.employeeId}@company.com`, // Fallback email if not provided
+        email: details.email || `${details.employeeId}@company.com`,
       };
       
       const success = await saveQuizResults(
@@ -329,7 +322,10 @@ Debugging Questions: ${sectionScores.debugging.score}/${sectionScores.debugging.
             <p className="text-muted-foreground">{quizSet.description}</p>
           </div>
           
-          <AutoSubmitWarning autoSubmitted={autoSubmitted} />
+          <AutoSubmitWarning 
+            autoSubmitted={autoSubmitted} 
+            formattedResults={formattedResults}
+          />
           
           {!detailsSubmitted ? (
             attendeeDetails ? (
